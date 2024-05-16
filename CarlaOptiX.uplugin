@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "CarlaOptiX",
+	"Description": "NVIDIA OptiX plugin for CARLA",
+	"Category": "Other",
+	"CreatedBy": "Computer Vision Center (CVC) at the Universitat Autonoma de Barcelona (UAB)",
+	"CreatedByURL": "http://carla.org",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "CarlaOptiX",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
