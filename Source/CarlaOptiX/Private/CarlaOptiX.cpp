@@ -1,18 +1,22 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CarlaOptiX.h"
+#include "OptiXInstance.h"
 
 #define LOCTEXT_NAMESPACE "FCarlaOptiXModule"
 
 void FCarlaOptiXModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+#ifndef CARLA_OPTIX_NO_AUTO_GLOBAL_INIT
+	FCarlaOptiXInstance::InitGlobalContext();
+#endif
 }
 
 void FCarlaOptiXModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+#ifndef CARLA_OPTIX_NO_AUTO_GLOBAL_UNINIT
+	FCarlaOptiXInstance::DestroyGlobalContext();
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE

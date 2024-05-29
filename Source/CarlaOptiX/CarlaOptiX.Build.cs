@@ -12,70 +12,65 @@ public class CarlaOptiX : ModuleRules
   string NVOptiXSDKPath = Environment.GetEnvironmentVariable(
     "CARLA_NVIDIA_OPTIX_SDK_PATH");
 
+  [CommandLine("-cuda-path")]
+  string CUDAPath = Environment.GetEnvironmentVariable(
+    "CUDA_PATH");
+
 
 
   public CarlaOptiX(ReadOnlyTargetRules Target) : base(Target)
   {
     PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-    var NVOptixIncludePath = Path.Combine(NVOptiXSDKPath, "include");
+    Console.WriteLine("NVIDIA OptiX SDK Path = \"" + NVOptiXSDKPath + "\"");
+    Console.WriteLine("CUDA SDK Path = \"" + CUDAPath + "\"");
 
     if (!Directory.Exists(NVOptiXSDKPath))
       throw new DirectoryNotFoundException();
 
-    if (false)
+    if (!Directory.Exists(CUDAPath))
+      throw new DirectoryNotFoundException();
+
+    var NVOptixIncludePath = Path.Combine(NVOptiXSDKPath, "include");
+    var CUDAIncludePath = Path.Combine(CUDAPath, "include");
+    var CUDALibPath = Path.Combine(CUDAPath, "lib", "x64");
+    var CUDALibraryPath = Path.Combine(CUDALibPath, "cuda.lib");
+
+    PublicIncludePaths.AddRange(new string[]
     {
-      var CUDAPath = Environment.GetEnvironmentVariable("CUDA_PATH");
-      var CUDAIncludePath = Path.Combine(CUDAPath, "include");
-      if (!Directory.Exists(CUDAPath))
-        throw new DirectoryNotFoundException();
-      Console.WriteLine("CUDA SDK Path = \"" + CUDAPath + "\"");
-    }
+      NVOptixIncludePath,
+      CUDAIncludePath
+    	// ... add public include paths required here ...
+    });
 
-    Console.WriteLine("NVIDIA OptiX SDK Path = \"" + NVOptiXSDKPath + "\"");
+    PrivateIncludePaths.AddRange(new string[]
+    {
+    	// ... add other private include paths required here ...
+    });
 
-    PublicIncludePaths.AddRange(
-      new string[]
-      {
-        NVOptixIncludePath
-				// ... add public include paths required here ...
-			});
-
-
-    PrivateIncludePaths.AddRange(
-      new string[] {
-				// ... add other private include paths required here ...
-			}
-      );
+    PublicAdditionalLibraries.AddRange(new string[]
+    {
+      CUDALibraryPath
+    });
 
 
-    PublicDependencyModuleNames.AddRange(
-      new string[]
-      {
-        "Core",
-        "CUDA",
-				// ... add other public dependencies that you statically link with here ...
-			}
-      );
+    PublicDependencyModuleNames.AddRange(new string[]
+    {
+      "Core"
+    });
+
+    PrivateDependencyModuleNames.AddRange(new string[]
+    {
+      "CoreUObject",
+      "Engine",
+      "Slate",
+      "SlateCore"
+    });
 
 
-    PrivateDependencyModuleNames.AddRange(
-      new string[]
-      {
-        "CoreUObject",
-        "Engine",
-        "Slate",
-        "SlateCore",
-				// ... add private dependencies that you statically link with here ...	
-			}
-      );
-
-
-    DynamicallyLoadedModuleNames.AddRange(
-      new string[]
-      {
-				// ... add any modules that your module loads dynamically here ...
-			}
-      );
+    DynamicallyLoadedModuleNames.AddRange(new string[]
+    {
+    	// ... add any modules that your module loads dynamically here ...
+    });
   }
 }
