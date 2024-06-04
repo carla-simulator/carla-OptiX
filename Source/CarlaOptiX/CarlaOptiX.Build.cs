@@ -10,11 +10,11 @@ public class CarlaOptiX : ModuleRules
 
   [CommandLine("-optix-path")]
   string NVOptiXSDKPath = Environment.GetEnvironmentVariable(
-    "CARLA_NVIDIA_OPTIX_SDK_PATH");
+    "CARLA_NVIDIA_OPTIX_SDK_PATH") ?? "";
 
   [CommandLine("-cuda-path")]
   string CUDAPath = Environment.GetEnvironmentVariable(
-    "CUDA_PATH");
+    "CUDA_PATH") ?? "";
 
 
 
