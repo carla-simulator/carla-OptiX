@@ -22,3 +22,4 @@ void FCarlaOptiXModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FCarlaOptiXModule, CarlaOptiX)
+DEFINE_LOG_CATEGORY(LogCarlaOptiX)
