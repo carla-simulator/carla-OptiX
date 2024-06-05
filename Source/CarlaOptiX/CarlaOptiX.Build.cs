@@ -11,20 +11,18 @@ public class CarlaOptiX : ModuleRules
 
   [CommandLine("-optix-path")]
   string NVOptiXSDKPath = Environment.GetEnvironmentVariable(
-    "CARLA_NVIDIA_OPTIX_SDK_PATH") ?? "";
+    "OPTIX_TOOLKIT_PATH") ?? "";
 
   [CommandLine("-cuda-path")]
   string CUDAPath = Environment.GetEnvironmentVariable(
     "CUDA_PATH") ?? "";
-
-  [CommandLine("-cuda-path")]
-  string SKAFlatHashMapPath = "";
 
 
 
   public CarlaOptiX(ReadOnlyTargetRules Target) : base(Target)
   {
     PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+    CppStandard = CppStandardVersion.Latest;
 
     Console.WriteLine("NVIDIA OptiX SDK Path = \"" + NVOptiXSDKPath + "\"");
     Console.WriteLine("CUDA SDK Path = \"" + CUDAPath + "\"");
@@ -39,19 +37,6 @@ public class CarlaOptiX : ModuleRules
     if (!Directory.Exists(DependenciesPath))
       Directory.CreateDirectory(DependenciesPath);
 
-    if (!Directory.Exists(SKAFlatHashMapPath))
-    {
-      var Process = new Process();
-      var StartInfo = new ProcessStartInfo();
-      StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-      StartInfo.WorkingDirectory = DependenciesPath;
-      StartInfo.FileName = "git";
-      StartInfo.Arguments = "clone --single-branch --depth 1 https://github.com/skarupke/flat_hash_map.git";
-      Process.StartInfo = StartInfo;
-      Process.Start();
-      Process.WaitForExit();
-    }
-
     var NVOptixIncludePath = Path.Combine(NVOptiXSDKPath, "include");
     var CUDAIncludePath = Path.Combine(CUDAPath, "include");
     var CUDALibPath = Path.Combine(CUDAPath, "lib", "x64");
@@ -59,12 +44,14 @@ public class CarlaOptiX : ModuleRules
 
     PublicIncludePaths.AddRange(new string[]
     {
+      DependenciesPath,
       NVOptixIncludePath,
       CUDAIncludePath
     	// ... add public include paths required here ...
     });
 
-    PrivateDefinitions.Add("CARLA_OPTIX_VERBOSE_DEFAULT"); // @TODO REMOVE
+    PrivateDefinitions.Add("CARLA_OPTIX_DEBUG_CHECKS"); // @TODO REMOVE
+    PrivateDefinitions.Add("CARLA_OPTIX_VERBOSE"); // @TODO REMOVE
 
     PrivateIncludePaths.AddRange(new string[]
     {
