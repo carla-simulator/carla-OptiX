@@ -37,6 +37,15 @@ void FCarlaOptiXScene::AddSceneStaticMeshes(UWorld* Source)
 		StaticMeshes.Add(FCarlaOptiXStaticMesh(Mesh));
 }
 
+FCarlaOptiXScene::~FCarlaOptiXScene()
+{
+	for (auto& Mesh : StaticMeshes)
+	{
+		CARLA_OPTIX_LOG_VERBOSE(TEXT("Mesh %p"), &Mesh);
+		CARLA_OPTIX_LOG_VERBOSE(TEXT("%s"), *Mesh.DebugDumpInfoString());
+	}
+}
+
 void FCarlaOptiXScene::UpdateFromWorld(UWorld* Source)
 {
 	AddSceneStaticMeshes(Source);

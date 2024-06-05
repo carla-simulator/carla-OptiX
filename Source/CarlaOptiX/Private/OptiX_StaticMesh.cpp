@@ -64,8 +64,33 @@ void FCarlaOptiXStaticMesh::Destroy()
 	// Material.reset();
 }
 
-void FCarlaOptiXStaticMesh::DebugDumpData(FString OutPath)
+FString FCarlaOptiXStaticMesh::DebugDumpInfoString()
 {
+	FString Result;
+	{
+		Result += "Indices:\n";
+		FOptixHostArray<uint32> IndicesView(Indices);
+		for (auto Index : IndicesView.GetSpan())
+		{
+			Result += FString::FromInt(Index);
+			Result += '\n';
+		}
+	}
+	{
+		Result += "Positions:\n";
+		FOptixHostArray<FVector3f> VerticesView(Positions);
+		for (auto Position : VerticesView.GetSpan())
+		{
+			Result += '(';
+			Result += FString::FromInt(Position.X);
+			Result += ',';
+			Result += FString::FromInt(Position.Y);
+			Result += ',';
+			Result += FString::FromInt(Position.Z);
+			Result += ")\n";
+		}
+	}
+	return Result;
 }
 
 

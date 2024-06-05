@@ -11,6 +11,18 @@ FOptixHostBuffer::FOptixHostBuffer(size_t size) :
 	CheckCUDAResult(cuMemAllocHost(reinterpret_cast<void**>(&host_ptr), size));
 }
 
+FOptixHostBuffer::FOptixHostBuffer(
+	FOptixDeviceBuffer& DeviceBuffer)
+{
+	new (this) FOptixHostBuffer(DeviceBuffer.GetSize());
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("Copying %llu bytes from device to host memory (0x%llx->0x%p)."),
+		(unsigned long long)DeviceBuffer.GetSizeBytes(),
+		(unsigned long long)DeviceBuffer.GetDeviceAddress(),
+		GetData());
+	CheckCUDAResult(cuMemcpyDtoH(GetData(), DeviceBuffer.GetDeviceAddress(), DeviceBuffer.GetSizeBytes()));
+}
+
 FOptixHostBuffer::FOptixHostBuffer(FOptixHostBuffer&& rhs) :
 	host_ptr(rhs.host_ptr),
 	size(rhs.size)
@@ -58,10 +70,11 @@ FOptixDeviceBuffer::FOptixDeviceBuffer(
 FOptixDeviceBuffer::FOptixDeviceBuffer(const void* HostData, size_t Size)
 {
 	new (this) FOptixDeviceBuffer(Size);
-	
+
 	CARLA_OPTIX_LOG_VERBOSE(
-		TEXT("Copying %llu bytes from host to device memory (0x%llx)."),
+		TEXT("Copying %llu bytes from host to device memory (0x%p->0x%llx)."),
 		(unsigned long long)GetSizeBytes(),
+		HostData,
 		(unsigned long long)GetDeviceAddress());
 	CheckCUDAResult(
 		cuMemcpyHtoD(

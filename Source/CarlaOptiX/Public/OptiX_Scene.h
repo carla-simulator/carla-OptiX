@@ -26,7 +26,7 @@ public:
 		FCarlaOptiXInstance* OptixInstance);
 	FCarlaOptiXScene(const FCarlaOptiXScene&) = delete;
 	FCarlaOptiXScene& operator=(const FCarlaOptiXScene&) = delete;
-	~FCarlaOptiXScene() = default;
+	~FCarlaOptiXScene();
 
 	void UpdateFromWorld(UWorld* Source);
 

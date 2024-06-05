@@ -4,6 +4,14 @@
 
 
 template <typename T>
+class CARLAOPTIX_API FOptixHostArray;
+
+template <typename T>
+class CARLAOPTIX_API FOptixDeviceArray;
+
+
+
+template <typename T>
 class CARLAOPTIX_API FOptixHostArray :
 	public FOptixHostBuffer
 {
@@ -26,18 +34,24 @@ public:
 		return std::span(GetData(), GetSize());
 	}
 
-	FOptixHostArray(size_t count) :
+	FOptixHostArray() = default;
+
+	explicit FOptixHostArray(size_t count) :
 		FOptixHostBuffer(count * sizeof(T))
 	{
 	}
 
-	FOptixHostArray() = default;
+	template <typename T>
+	explicit FOptixHostArray(FOptixDeviceArray<T>& Source) :
+		FOptixHostBuffer(Source)
+	{
+	}
+
 	FOptixHostArray(const FOptixHostArray&) = delete;
 	FOptixHostArray& operator=(const FOptixHostArray&) = delete;
 	FOptixHostArray(FOptixHostArray&&) = default;
 	FOptixHostArray& operator=(FOptixHostArray&&) = default;
 	~FOptixHostArray() = default;
-
 };
 
 

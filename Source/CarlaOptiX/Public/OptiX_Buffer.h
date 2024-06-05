@@ -4,6 +4,11 @@
 
 
 
+class CARLAOPTIX_API FOptixHostBuffer;
+class CARLAOPTIX_API FOptixDeviceBuffer;
+
+
+
 class CARLAOPTIX_API FOptixHostBuffer
 {
 	uint8_t* host_ptr;
@@ -38,13 +43,13 @@ public:
 	{
 	}
 
-	FOptixHostBuffer(size_t size);
+	explicit FOptixHostBuffer(size_t Size);
+	explicit FOptixHostBuffer(FOptixDeviceBuffer& DeviceBuffer);
 	FOptixHostBuffer(const FOptixHostBuffer&) = delete;
 	FOptixHostBuffer& operator=(const FOptixHostBuffer&) = delete;
 	FOptixHostBuffer(FOptixHostBuffer&& rhs);
 	FOptixHostBuffer& operator=(FOptixHostBuffer&& rhs);
 	~FOptixHostBuffer();
-
 };
 
 
