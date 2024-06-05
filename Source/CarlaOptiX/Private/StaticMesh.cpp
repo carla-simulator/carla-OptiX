@@ -20,6 +20,5 @@ FOptixStaticMesh::FOptixStaticMesh(
 		auto Position = PositionBuffer.VertexPosition(i);
 	}
 	auto NaniteVertexCount = Source->GetNumNaniteVertices();
-	auto RenderData = Source->GetRenderData();
 	RenderData->LODResources[LODIndex].GetNumVertices();
 }
