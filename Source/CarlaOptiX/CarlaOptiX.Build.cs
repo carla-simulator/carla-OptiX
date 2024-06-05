@@ -43,6 +43,8 @@ public class CarlaOptiX : ModuleRules
     	// ... add public include paths required here ...
     });
 
+    PrivateDefinitions.Add("CARLA_OPTIX_VERBOSE_DEFAULT"); // @TODO REMOVE
+
     PrivateIncludePaths.AddRange(new string[]
     {
     	// ... add other private include paths required here ...

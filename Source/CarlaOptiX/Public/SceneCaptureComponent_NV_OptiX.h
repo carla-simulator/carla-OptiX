@@ -1,10 +1,11 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "OptiXHeaders.h"
 #include "SceneCaptureComponent_NV_OptiX.generated.h"
 
 
 
-class CARLAOPTIX_API FCarlaOptiXInstance;
+class FCarlaOptiXInstance;
 
 
 

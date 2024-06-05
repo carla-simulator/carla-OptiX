@@ -1,10 +1,16 @@
-#include "OptiXInstance.h"
+#include "Instance.h"
 #include <mutex>
+
+#ifndef CARLA_OPTIX_VERBOSE_DEFAULT
+constexpr bool CarlaOptiXVerboseDefault = false;
+#else
+constexpr bool CarlaOptiXVerboseDefault = true;
+#endif
 
 TAutoConsoleVariable<int32> CarlaOptiXVerbose(
 	TEXT("CARLA.OptiX.Verbose"),
-	1,
-	TEXT("Whether to enable extra error message from CarlaOptiX."));
+	(int32)CarlaOptiXVerboseDefault,
+	TEXT("Whether to enable extra error messages from CarlaOptiX."));
 
 static void* optix_library_handle = nullptr;
 
@@ -28,9 +34,6 @@ void FCarlaOptiXInstance::InitGlobalContext()
 {
 	CheckCUDAResult(cuInit(0));
 	CheckOptiXResult(optixInitWithHandle(&optix_library_handle));
-
-	FOptixHostArray<int> temp(4096);
-	FOptixDeviceArray<int> temp2(4096);
 }
 
 void FCarlaOptiXInstance::DestroyGlobalContext()
@@ -81,6 +84,16 @@ FCarlaOptiXInstance::~FCarlaOptiXInstance()
 		OptixContext = OptixDeviceContext();
 	}
 }
+
+
+
+ACarlaOptiXInstance::ACarlaOptiXInstance(
+	const FObjectInitializer& Initializer) :
+	Super(Initializer)
+{
+}
+
+
 
 void CheckCUDAResult(
 	CUresult ec,
