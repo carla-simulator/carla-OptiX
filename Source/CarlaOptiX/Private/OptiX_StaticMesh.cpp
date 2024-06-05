@@ -58,10 +58,14 @@ void FCarlaOptiXStaticMesh::Destroy()
 {
 	Indices.Destroy();
 	Positions.Destroy();
-	Normals.Destroy();
-	Tangents.Destroy();
-	TextureUVs.Destroy();
-	Material.reset();
+	// Normals.Destroy();
+	// Tangents.Destroy();
+	// TextureUVs.Destroy();
+	// Material.reset();
+}
+
+void FCarlaOptiXStaticMesh::DebugDumpData(FString OutPath)
+{
 }
 
 

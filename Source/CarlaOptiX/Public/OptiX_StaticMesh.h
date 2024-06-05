@@ -34,7 +34,7 @@ public:
 
 	void Destroy();
 
-	void DebugDumpData();
+	void DebugDumpData(FString OutPath);
 
 };
 
