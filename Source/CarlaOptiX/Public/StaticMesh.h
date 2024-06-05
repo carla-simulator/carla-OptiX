@@ -1,5 +1,8 @@
 #pragma once
 #include "OptiXHeaders.h"
+#include "Array.h"
+#include "Material.h"
+#include <memory>
 
 
 
@@ -20,6 +23,10 @@ public:
 	FOptixStaticMesh(FOptixStaticMesh&&) = default;
 	FOptixStaticMesh& operator=(FOptixStaticMesh&&) = default;
 	~FOptixStaticMesh() = default;
+
+	FOptixStaticMesh(
+		UStaticMesh* Source,
+		int32 LODIndex);
 
 };
 

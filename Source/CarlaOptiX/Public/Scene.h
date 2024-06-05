@@ -1,5 +1,6 @@
 #pragma once
 #include "OptiXHeaders.h"
+#include "CarlaOptiX.h"
 
 
 

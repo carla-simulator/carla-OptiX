@@ -1,9 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
-using System;
 using EpicGames.Core;
+using System;
 using System.IO;
+using System.Diagnostics;
 
 public class CarlaOptiX : ModuleRules
 {
@@ -15,6 +16,9 @@ public class CarlaOptiX : ModuleRules
   [CommandLine("-cuda-path")]
   string CUDAPath = Environment.GetEnvironmentVariable(
     "CUDA_PATH") ?? "";
+
+  [CommandLine("-cuda-path")]
+  string SKAFlatHashMapPath = "";
 
 
 
@@ -30,6 +34,23 @@ public class CarlaOptiX : ModuleRules
 
     if (!Directory.Exists(CUDAPath))
       throw new DirectoryNotFoundException();
+    
+    var DependenciesPath = Path.Combine(PluginDirectory, "Dependencies");
+    if (!Directory.Exists(DependenciesPath))
+      Directory.CreateDirectory(DependenciesPath);
+
+    if (!Directory.Exists(SKAFlatHashMapPath))
+    {
+      var Process = new Process();
+      var StartInfo = new ProcessStartInfo();
+      StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+      StartInfo.WorkingDirectory = DependenciesPath;
+      StartInfo.FileName = "git";
+      StartInfo.Arguments = "clone --single-branch --depth 1 https://github.com/skarupke/flat_hash_map.git";
+      Process.StartInfo = StartInfo;
+      Process.Start();
+      Process.WaitForExit();
+    }
 
     var NVOptixIncludePath = Path.Combine(NVOptiXSDKPath, "include");
     var CUDAIncludePath = Path.Combine(CUDAPath, "include");

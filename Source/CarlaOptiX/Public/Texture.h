@@ -19,9 +19,17 @@ class CARLAOPTIX_API FOptixTexture
 	FUintVector3 Shape;
 	size_t ElementSize;
 	size_t BufferSize;
+
 public:
 
 	FOptixTexture();
+	FOptixTexture(const FOptixTexture&) = default;
+	FOptixTexture& operator=(const FOptixTexture&) = default;
+	FOptixTexture(FOptixTexture&&);
+	FOptixTexture& operator=(FOptixTexture&&);
+	~FOptixTexture();
+
+	void Destroy();
 
 	constexpr auto GetShape() const { return Shape; }
 	constexpr auto GetWidth() const { return Shape.X; }
