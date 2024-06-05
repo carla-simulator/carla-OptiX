@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CarlaOptiX.h"
-#include "Instance.h"
+#include "OptiX_Instance.h"
 
 #define LOCTEXT_NAMESPACE "FCarlaOptiXModule"
 

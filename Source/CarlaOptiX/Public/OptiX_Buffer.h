@@ -1,18 +1,18 @@
 #pragma once
-#include "OptiXHeaders.h"
+#include "OptiX_Common.h"
 #include <span>
 
 
 
 class CARLAOPTIX_API FOptixHostBuffer
 {
-	uint8_t* staging_buffer;
+	uint8_t* host_ptr;
 	size_t size;
 public:
 
-	constexpr auto GetHostPointer()
+	constexpr auto GetData()
 	{
-		return staging_buffer;
+		return host_ptr;
 	}
 
 	constexpr auto GetSize() const
@@ -25,15 +25,15 @@ public:
 		return size;
 	}
 
-	constexpr auto GetHostSpan()
+	constexpr auto GetSpan()
 	{
-		return std::span(staging_buffer, GetSizeBytes());
+		return std::span(host_ptr, GetSizeBytes());
 	}
 
 	void Destroy();
 
 	constexpr FOptixHostBuffer() :
-		staging_buffer(),
+		host_ptr(),
 		size()
 	{
 	}
@@ -51,14 +51,14 @@ public:
 
 class CARLAOPTIX_API FOptixDeviceBuffer
 {
-	CUdeviceptr data;
+	CUdeviceptr device_ptr;
 	size_t size;
 
 public:
 
-	constexpr auto GetDevicePointer()
+	constexpr auto GetDeviceAddress()
 	{
-		return data;
+		return device_ptr;
 	}
 
 	constexpr auto GetSize() const
@@ -74,16 +74,23 @@ public:
 	void Destroy();
 
 	constexpr FOptixDeviceBuffer() :
-		data(),
+		device_ptr(),
 		size()
 	{
 	}
 
-	FOptixDeviceBuffer(size_t size);
+	explicit FOptixDeviceBuffer(size_t Size);
+	FOptixDeviceBuffer(const void* HostData, size_t Size);
 	FOptixDeviceBuffer(const FOptixDeviceBuffer&) = delete;
 	FOptixDeviceBuffer& operator=(const FOptixDeviceBuffer&) = delete;
 	FOptixDeviceBuffer(FOptixDeviceBuffer&& rhs);
 	FOptixDeviceBuffer& operator=(FOptixDeviceBuffer&& rhs);
 	~FOptixDeviceBuffer();
-	
+
+	template <typename T>
+	explicit FOptixDeviceBuffer(std::span<T> HostData)
+	{
+		new (this) FOptixDeviceBuffer(HostData.data(), HostData.size());
+	}
+
 };

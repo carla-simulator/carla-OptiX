@@ -1,7 +1,9 @@
-#include "Instance.h"
-#include <mutex>
+#include "OptiX_Instance.h"
+#ifdef CARLA_OPTIX_DEBUG_CHECKS
+#include <atomic>
+#endif
 
-#ifndef CARLA_OPTIX_VERBOSE_DEFAULT
+#ifndef CARLA_OPTIX_VERBOSE
 constexpr bool CarlaOptiXVerboseDefault = false;
 #else
 constexpr bool CarlaOptiXVerboseDefault = true;
@@ -12,7 +14,17 @@ TAutoConsoleVariable<int32> CarlaOptiXVerbose(
 	(int32)CarlaOptiXVerboseDefault,
 	TEXT("Whether to enable extra error messages from CarlaOptiX."));
 
-static void* optix_library_handle = nullptr;
+
+
+static void* OptixLibraryHandle = nullptr;
+
+#ifdef CARLA_OPTIX_DEBUG_CHECKS
+static std::atomic<FCarlaOptiXInstance*> GlobalOptiXInstance = nullptr;
+#else
+static FCarlaOptiXInstance* GlobalOptiXInstance = nullptr;
+#endif
+
+
 
 void FCarlaOptiXInstance::OptixCallback(
 	unsigned int level,
@@ -33,13 +45,29 @@ void FCarlaOptiXInstance::OptixCallback(
 void FCarlaOptiXInstance::InitGlobalContext()
 {
 	CheckCUDAResult(cuInit(0));
-	CheckOptiXResult(optixInitWithHandle(&optix_library_handle));
+	CheckOptiXResult(optixInitWithHandle(&OptixLibraryHandle));
 }
 
 void FCarlaOptiXInstance::DestroyGlobalContext()
 {
-	auto result = optixUninitWithHandle(optix_library_handle);
+	auto result = optixUninitWithHandle(OptixLibraryHandle);
 	CheckOptiXResult(result);
+}
+
+FCarlaOptiXInstance* FCarlaOptiXInstance::GetGlobalInstance()
+{
+#ifdef CARLA_OPTIX_DEBUG_CHECKS
+	return GlobalOptiXInstance.load(std::memory_order::acquire);
+#else
+	return GlobalOptiXInstance;
+#endif
+}
+
+FCarlaOptiXInstance& FCarlaOptiXInstance::GetGlobalInstanceChecked()
+{
+	auto Ptr = GetGlobalInstance();
+	check(Ptr != nullptr);
+	return *Ptr;
 }
 
 FCarlaOptiXInstance::FCarlaOptiXInstance() :
@@ -49,14 +77,30 @@ FCarlaOptiXInstance::FCarlaOptiXInstance() :
 }
 
 FCarlaOptiXInstance::FCarlaOptiXInstance(
-	const FCarlaOptiXInstanceOptions& Options) :
+	const FCarlaOptiXInstanceOptions& OptiXOptions) :
 	CUDAContext(),
 	CUDADevice(),
 	OptixContext()
 {
+	Initialize(OptiXOptions);
+}
+
+FCarlaOptiXInstance::~FCarlaOptiXInstance()
+{
+	if (!IsValid())
+		Destroy();
+}
+
+void FCarlaOptiXInstance::Initialize(
+	const FCarlaOptiXInstanceOptions& OptiXOptions)
+{
+	check(!IsValid());
+	CARLA_OPTIX_LOG(TEXT("Creating Instance."));
 	unsigned CudaContextFlags = 0;
-	cuDeviceGet(&CUDADevice, Options.CUDADeviceIndex);
-	cuCtxCreate(&CUDAContext, CudaContextFlags, CUDADevice);
+	CARLA_OPTIX_LOG(TEXT("Searching for compute devices."));
+	CheckCUDAResult(cuDeviceGet(&CUDADevice, OptiXOptions.CUDADeviceIndex));
+	CARLA_OPTIX_LOG(TEXT("Creating CUDA context."));
+	CheckCUDAResult(cuCtxCreate(&CUDAContext, CudaContextFlags, CUDADevice));
 	OptixDeviceContextOptions OptixOptions = {};
 	OptixOptions.logCallbackFunction = OptixCallback;
 	OptixOptions.logCallbackData = this;
@@ -70,19 +114,35 @@ FCarlaOptiXInstance::FCarlaOptiXInstance(
 		OptixOptions.logCallbackLevel = 3;
 		OptixOptions.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_OFF;
 	}
-	optixDeviceContextCreate(
+	CARLA_OPTIX_LOG(TEXT("Creating OptiX context."));
+	CheckOptiXResult(optixDeviceContextCreate(
 		CUDAContext,
 		&OptixOptions,
-		&OptixContext);
+		&OptixContext));
 }
 
-FCarlaOptiXInstance::~FCarlaOptiXInstance()
+void FCarlaOptiXInstance::Destroy()
 {
+	CARLA_OPTIX_LOG(TEXT("Destroying Instance."));
 	if (OptixContext != OptixDeviceContext())
 	{
+		CARLA_OPTIX_LOG(TEXT("Destroying OptiX context."));
 		optixDeviceContextDestroy(OptixContext);
 		OptixContext = OptixDeviceContext();
 	}
+}
+
+bool FCarlaOptiXInstance::IsValid() const
+{
+	return
+		CUDAContext != CUcontext() &&
+		CUDADevice != CUdevice() &&
+		OptixContext != OptixDeviceContext();
+}
+
+void FCarlaOptiXInstance::SetAsGlobalInstance()
+{
+	GlobalOptiXInstance = this;
 }
 
 
@@ -91,6 +151,17 @@ ACarlaOptiXInstance::ACarlaOptiXInstance(
 	const FObjectInitializer& Initializer) :
 	Super(Initializer)
 {
+}
+
+void ACarlaOptiXInstance::Initialize(
+	const FCarlaOptiXInstanceOptions& InstanceOptions)
+{
+	Implementation.Initialize(InstanceOptions);
+}
+
+void ACarlaOptiXInstance::SetAsGlobalInstance()
+{
+	Implementation.SetAsGlobalInstance();
 }
 
 
@@ -108,7 +179,7 @@ void CheckCUDAResult(
 	(void)cuGetErrorString(ec, &message);
 	UE_LOG(
 		LogCarlaOptiX,
-		Log,
+		Error,
 		TEXT("\n %s (%u, %u): CUDA error 0x%llx (%s) encountered: %s\n"),
 		*FString(loc.file_name()),
 		loc.line(),
@@ -130,7 +201,7 @@ void CheckOptiXResult(
 	auto message = optixGetErrorString(ec);
 	UE_LOG(
 		LogCarlaOptiX,
-		Log,
+		Error,
 		TEXT("\n %s (%u, %u): OptiX error 0x%llx (%s) encountered: %s\n"),
 		*FString(loc.file_name()),
 		loc.line(),
@@ -139,4 +210,9 @@ void CheckOptiXResult(
 		*FString(name ? name : "<invalid CUresult>"),
 		*FString(message ? message : "<N/A>"));
 	check(false);
+}
+
+bool IsCarlaOptiXVerboseLoggingEnabled()
+{
+	return (bool)CarlaOptiXVerbose.GetValueOnAnyThread();
 }

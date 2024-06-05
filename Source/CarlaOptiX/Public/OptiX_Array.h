@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.h"
+#include "OptiX_Buffer.h"
 
 
 
@@ -9,12 +9,21 @@ class CARLAOPTIX_API FOptixHostArray :
 {
 public:
 
-	using FOptixHostBuffer::GetHostPointer;
 	using FOptixHostBuffer::GetSizeBytes;
 
 	constexpr auto GetSize() const
 	{
-		return FOptixHostBuffer::GetSizeBytes() * sizeof(T);
+		return FOptixHostBuffer::GetSizeBytes() / sizeof(T);
+	}
+
+	constexpr auto GetData()
+	{
+		return reinterpret_cast<T*>(FOptixHostBuffer::GetData());
+	}
+
+	constexpr auto GetSpan()
+	{
+		return std::span(GetData(), GetSize());
 	}
 
 	FOptixHostArray(size_t count) :
@@ -39,16 +48,21 @@ class CARLAOPTIX_API FOptixDeviceArray :
 {
 public:
 
-	using FOptixDeviceBuffer::GetDevicePointer;
+	using FOptixDeviceBuffer::GetDeviceAddress;
 	using FOptixDeviceBuffer::GetSizeBytes;
 
 	constexpr auto GetSize() const
 	{
-		return FOptixDeviceBuffer::GetSizeBytes() * sizeof(T);
+		return FOptixDeviceBuffer::GetSizeBytes() / sizeof(T);
 	}
 
-	FOptixDeviceArray(size_t count) :
+	explicit FOptixDeviceArray(size_t count) :
 		FOptixDeviceBuffer(count * sizeof(T))
+	{
+	}
+
+	explicit FOptixDeviceArray(std::span<T> SourceSpan) :
+		FOptixDeviceBuffer(SourceSpan)
 	{
 	}
 

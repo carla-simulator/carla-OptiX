@@ -1,5 +1,5 @@
 #pragma once
-#include "OptiXHeaders.h"
+#include "OptiX_Common.h"
 
 
 

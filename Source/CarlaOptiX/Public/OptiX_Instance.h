@@ -1,13 +1,18 @@
 #pragma once
-#include "OptiXHeaders.h"
+#include "OptiX_Common.h"
 
-#include <Instance.generated.h>
+#include <OptiX_Instance.generated.h>
 
 
 
+USTRUCT(BlueprintType)
 struct FCarlaOptiXInstanceOptions
 {
-	size_t CUDADeviceIndex = 0;
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 CUDADeviceIndex = 0;
+
 };
 
 
@@ -29,12 +34,21 @@ public:
 	static void InitGlobalContext();
 	static void DestroyGlobalContext();
 
+	static FCarlaOptiXInstance* GetGlobalInstance();
+	static FCarlaOptiXInstance& GetGlobalInstanceChecked();
+
 	FCarlaOptiXInstance();
 	FCarlaOptiXInstance(
-		const FCarlaOptiXInstanceOptions& optix_options);
+		const FCarlaOptiXInstanceOptions& OptiXOptions);
 	FCarlaOptiXInstance(const FCarlaOptiXInstance&) = delete;
 	FCarlaOptiXInstance& operator=(const FCarlaOptiXInstance&) = delete;
 	~FCarlaOptiXInstance();
+
+	void Initialize(const FCarlaOptiXInstanceOptions& OptiXOptions);
+	void Destroy();
+	bool IsValid() const;
+
+	void SetAsGlobalInstance();
 
 	constexpr auto GetCUDAContext() { return CUDAContext; }
 	constexpr auto GetOptixDeviceContext() { return OptixContext; }
@@ -45,12 +59,22 @@ public:
 
 UCLASS()
 class CARLAOPTIX_API ACarlaOptiXInstance :
-	public AActor,
-	public FCarlaOptiXInstance
+	public AActor
 {
 	GENERATED_BODY()
+
 public:
 
 	ACarlaOptiXInstance(const FObjectInitializer&);
+
+	UFUNCTION(BlueprintCallable)
+	void Initialize(const FCarlaOptiXInstanceOptions& InstanceOptions);
+
+	UFUNCTION(BlueprintCallable)
+	void SetAsGlobalInstance();
+
+private:
+
+	FCarlaOptiXInstance Implementation;
 
 };

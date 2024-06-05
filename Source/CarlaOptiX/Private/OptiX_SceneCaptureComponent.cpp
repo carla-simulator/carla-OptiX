@@ -1,4 +1,4 @@
-#include "SceneCaptureComponent_NV_OptiX.h"
+#include "OptiX_SceneCaptureComponent.h"
 
 
 
