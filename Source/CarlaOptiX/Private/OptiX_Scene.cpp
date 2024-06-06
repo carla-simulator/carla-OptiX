@@ -147,11 +147,13 @@ FCarlaOptiXScene& FCarlaOptiXScene::operator=(FCarlaOptiXScene&& Other)
 
 FCarlaOptiXScene::~FCarlaOptiXScene()
 {
+#if 0
 	for (auto& Mesh : StaticMeshes)
 	{
 		CARLA_OPTIX_LOG_VERBOSE(TEXT("Mesh %p"), &Mesh);
 		CARLA_OPTIX_LOG_VERBOSE(TEXT("%s"), *Mesh.DebugDumpInfoString());
 	}
+#endif
 }
 
 void FCarlaOptiXScene::UpdateFromWorld(UWorld* Source)
