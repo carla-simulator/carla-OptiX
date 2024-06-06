@@ -28,6 +28,12 @@ public:
 	FCarlaOptiXStaticMesh& operator=(FCarlaOptiXStaticMesh&&) = default;
 	~FCarlaOptiXStaticMesh() = default;
 
+	constexpr auto& GetIndexBuffer() { return Indices; }
+	constexpr auto& GetPositionBuffer() { return Positions; }
+
+	static constexpr auto GetIndexFormat() { return ; }
+	static constexpr auto GetVertexFormat() { return OPTIX_VERTEX_FORMAT_FLOAT3; }
+
 	void Initialize(
 		UStaticMesh* Source,
 		int32 LODIndex = 0);

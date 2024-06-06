@@ -82,18 +82,6 @@ FCarlaOptiXInstance::FCarlaOptiXInstance(
 	CUDADevice(),
 	OptixContext()
 {
-	Initialize(OptiXOptions);
-}
-
-FCarlaOptiXInstance::~FCarlaOptiXInstance()
-{
-	if (!IsValid())
-		Destroy();
-}
-
-void FCarlaOptiXInstance::Initialize(
-	const FCarlaOptiXInstanceOptions& OptiXOptions)
-{
 	check(!IsValid());
 	CARLA_OPTIX_LOG(TEXT("Creating Instance."));
 	unsigned CudaContextFlags = 0;
@@ -119,6 +107,29 @@ void FCarlaOptiXInstance::Initialize(
 		CUDAContext,
 		&OptixOptions,
 		&OptixContext));
+}
+
+FCarlaOptiXInstance::FCarlaOptiXInstance(FCarlaOptiXInstance&& Other) :
+	CUDAContext(Other.CUDAContext),
+	CUDADevice(Other.CUDADevice),
+	OptixContext(Other.OptixContext)
+{
+	Other.CUDAContext = CUcontext();
+	Other.CUDADevice = CUdevice();
+	Other.OptixContext = OptixDeviceContext();
+}
+
+FCarlaOptiXInstance& FCarlaOptiXInstance::operator=(FCarlaOptiXInstance&& Other)
+{
+	this->~FCarlaOptiXInstance();
+	new (this) FCarlaOptiXInstance(std::move(Other));
+	return *this;
+}
+
+FCarlaOptiXInstance::~FCarlaOptiXInstance()
+{
+	if (!IsValid())
+		Destroy();
 }
 
 void FCarlaOptiXInstance::Destroy()
@@ -153,14 +164,10 @@ ACarlaOptiXInstance::ACarlaOptiXInstance(
 {
 }
 
-void ACarlaOptiXInstance::Initialize(
-	const FCarlaOptiXInstanceOptions& InstanceOptions)
+void ACarlaOptiXInstance::BeginPlay()
 {
-	Implementation.Initialize(InstanceOptions);
-}
-
-void ACarlaOptiXInstance::SetAsGlobalInstance()
-{
+	FCarlaOptiXInstanceOptions Options = {};
+	Implementation = FCarlaOptiXInstance(Options);
 	Implementation.SetAsGlobalInstance();
 }
 

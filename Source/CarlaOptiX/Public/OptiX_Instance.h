@@ -42,9 +42,10 @@ public:
 		const FCarlaOptiXInstanceOptions& OptiXOptions);
 	FCarlaOptiXInstance(const FCarlaOptiXInstance&) = delete;
 	FCarlaOptiXInstance& operator=(const FCarlaOptiXInstance&) = delete;
+	FCarlaOptiXInstance(FCarlaOptiXInstance&&);
+	FCarlaOptiXInstance& operator=(FCarlaOptiXInstance&&);
 	~FCarlaOptiXInstance();
 
-	void Initialize(const FCarlaOptiXInstanceOptions& OptiXOptions);
 	void Destroy();
 	bool IsValid() const;
 
@@ -62,16 +63,12 @@ class CARLAOPTIX_API ACarlaOptiXInstance :
 	public AActor
 {
 	GENERATED_BODY()
-
 public:
 
-	ACarlaOptiXInstance(const FObjectInitializer&);
+	ACarlaOptiXInstance(
+		const FObjectInitializer& Initializer);
 
-	UFUNCTION(BlueprintCallable)
-	void Initialize(const FCarlaOptiXInstanceOptions& InstanceOptions);
-
-	UFUNCTION(BlueprintCallable)
-	void SetAsGlobalInstance();
+	void BeginPlay() override;
 
 private:
 

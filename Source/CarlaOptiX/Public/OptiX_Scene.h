@@ -15,8 +15,24 @@ class CARLAOPTIX_API FCarlaOptiXScene
 	friend class ACarlaOptiXScene;
 
 	FCarlaOptiXInstance* OptixInstance;
-	TArray<FCarlaOptiXStaticMesh> StaticMeshes;
+	OptixTraversableHandle GeometryAccelerationStructure;
+	FOptixDeviceBuffer GASBuffer;
 
+	std::vector<FCarlaOptiXStaticMesh> StaticMeshes;
+
+	OptixModuleCompileOptions ModuleCompileOptions;
+	OptixPipelineLinkOptions PipelineLinkOptions;
+	OptixProgramGroupOptions ProgramGroupOptions;
+	OptixPipeline Pipeline;
+	OptixShaderBindingTable ShaderBindingTable;
+	OptixFunctionTable FunctionTable;
+	OptixDeviceContext DeviceContext;
+
+	void EnumerateBuildInputs(
+		std::vector<OptixBuildInput>& OutBuildInputs,
+		std::vector<CUdeviceptr>& OutPointers);
+
+	void BuildGAS();
 	void AddSceneStaticMeshes(UWorld* Source);
 
 public:
@@ -26,6 +42,8 @@ public:
 		FCarlaOptiXInstance* OptixInstance);
 	FCarlaOptiXScene(const FCarlaOptiXScene&) = delete;
 	FCarlaOptiXScene& operator=(const FCarlaOptiXScene&) = delete;
+	FCarlaOptiXScene(FCarlaOptiXScene&&);
+	FCarlaOptiXScene& operator=(FCarlaOptiXScene&&);
 	~FCarlaOptiXScene();
 
 	void UpdateFromWorld(UWorld* Source);
@@ -39,18 +57,24 @@ public:
 
 UCLASS()
 class CARLAOPTIX_API ACarlaOptiXScene :
-	public AActor,
-	public FCarlaOptiXScene
+	public AActor
 {
 	GENERATED_BODY()
 public:
 
 	ACarlaOptiXScene(const FObjectInitializer&);
 
+	void BeginPlay() override;
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateFromWorld(UWorld* Source);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateFromCurrentWorld();
+
+private:
+
+	FCarlaOptiXScene Implementation;
 
 };

@@ -5,7 +5,7 @@
 
 
 
-class FCarlaOptiXInstance;
+class FCarlaOptiXScene;
 
 
 
@@ -15,11 +15,18 @@ class CARLAOPTIX_API ASceneCaptureComponentNVOptiX :
 {
 	GENERATED_BODY()
 
-	FCarlaOptiXInstance* OptixInstance;
+	FCarlaOptiXScene* Scene;
 
 public:
 
 	ASceneCaptureComponentNVOptiX(
 		const FObjectInitializer& ObjectInitializer);
+
+	void BeginPlay() override;
+
+	void EndPlay(
+		const EEndPlayReason::Type EndPlayReason) override;
+
+	void RenderScene();
 
 };
