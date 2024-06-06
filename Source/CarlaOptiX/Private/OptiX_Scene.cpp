@@ -23,27 +23,25 @@ void FCarlaOptiXScene::EnumerateBuildInputs(
 	for (size_t i = 0; i != StaticMeshes.size(); ++i)
 	{
 		auto& StaticMesh = StaticMeshes[i];
-		auto& BuildInput = OutBuildInputs[i];
+		auto& Input = OutBuildInputs[i];
 		auto& Pointer = OutPointers[i];
 		auto& IndexBuffer = StaticMesh.GetIndexBuffer();
 		auto& VertexBuffer = StaticMesh.GetPositionBuffer();
-
 		Pointer = VertexBuffer.GetDeviceAddress();
-
-		OptixBuildInput Input = {};
 		Input.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
 		auto& TriangleArray = Input.triangleArray;
 		TriangleArray.vertexBuffers = &Pointer;
 		TriangleArray.numVertices = 1;
 		TriangleArray.vertexFormat = StaticMesh.GetVertexFormat();
 		TriangleArray.vertexStrideInBytes = sizeof(FVector3f);
-		TriangleArray.indexBuffer = StaticMesh.GetIndexBuffer().GetDeviceAddress();
-		TriangleArray.numIndexTriplets = 0;
+		TriangleArray.indexBuffer = IndexBuffer.GetDeviceAddress();
+		check((IndexBuffer.GetSize() % 3) == 0);
+		TriangleArray.numIndexTriplets = IndexBuffer.GetSize() / 3;
 		TriangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3; // ???
 		TriangleArray.indexStrideInBytes = 0;
 		TriangleArray.preTransform = CUdeviceptr();
 		TriangleArray.flags = nullptr;
-		TriangleArray.numSbtRecords = 0;
+		TriangleArray.numSbtRecords = 1;
 		TriangleArray.sbtIndexOffsetBuffer = CUdeviceptr();
 		TriangleArray.sbtIndexOffsetSizeInBytes = 0;
 		TriangleArray.sbtIndexOffsetStrideInBytes = 0;
@@ -51,19 +49,21 @@ void FCarlaOptiXScene::EnumerateBuildInputs(
 		TriangleArray.transformFormat = OPTIX_TRANSFORM_FORMAT_NONE;
 		TriangleArray.opacityMicromap = OptixBuildInputOpacityMicromap();
 		TriangleArray.displacementMicromap = OptixBuildInputDisplacementMicromap();
-		OutBuildInputs.push_back(Input);
 	}
 }
 
 void FCarlaOptiXScene::BuildGAS()
 {
-	OptixAccelBuildOptions Options;
-
 	std::vector<OptixAccelBufferSizes> BufferSizes;
 	std::vector<OptixBuildInput> BuildInputs;
 	std::vector<CUdeviceptr> Pointers;
 	EnumerateBuildInputs(BuildInputs, Pointers);
-	
+
+	OptixAccelBuildOptions Options = { };
+	Options.buildFlags = 0;
+	Options.operation = OPTIX_BUILD_OPERATION_BUILD;
+	Options.motionOptions = { };
+
 	BufferSizes.resize(BuildInputs.size());
 	CheckOptiXResult(optixAccelComputeMemoryUsage(
 		OptixInstance->GetOptixDeviceContext(),
@@ -178,7 +178,7 @@ void ACarlaOptiXScene::Initialize()
 void ACarlaOptiXScene::UpdateFromWorld(UWorld* Source)
 {
 	check(Implementation.IsValid());
-	Implementation.AddSceneStaticMeshes(Source);
+	Implementation.UpdateFromWorld(Source);
 }
 
 void ACarlaOptiXScene::UpdateFromCurrentWorld()
