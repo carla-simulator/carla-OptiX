@@ -168,16 +168,11 @@ ACarlaOptiXScene::ACarlaOptiXScene(
 {
 }
 
-void ACarlaOptiXScene::BeginPlay()
+void ACarlaOptiXScene::Initialize()
 {
 	auto Instance = FCarlaOptiXInstance::GetGlobalInstance();
 	check(Instance);
 	Implementation = FCarlaOptiXScene(Instance);
-}
-
-void ACarlaOptiXScene::EndPlay(
-	const EEndPlayReason::Type EndPlayReason)
-{
 }
 
 void ACarlaOptiXScene::UpdateFromWorld(UWorld* Source)

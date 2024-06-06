@@ -64,8 +64,8 @@ public:
 
 	ACarlaOptiXScene(const FObjectInitializer&);
 
-	void BeginPlay() override;
-	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	UFUNCTION(BlueprintCallable)
+	void Initialize();
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateFromWorld(UWorld* Source);

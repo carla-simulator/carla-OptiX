@@ -164,7 +164,7 @@ ACarlaOptiXInstance::ACarlaOptiXInstance(
 {
 }
 
-void ACarlaOptiXInstance::BeginPlay()
+void ACarlaOptiXInstance::Initialize()
 {
 	FCarlaOptiXInstanceOptions Options = {};
 	Implementation = FCarlaOptiXInstance(Options);

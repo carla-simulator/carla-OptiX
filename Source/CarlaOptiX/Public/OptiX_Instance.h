@@ -68,7 +68,8 @@ public:
 	ACarlaOptiXInstance(
 		const FObjectInitializer& Initializer);
 
-	void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
+	void Initialize();
 
 private:
 
