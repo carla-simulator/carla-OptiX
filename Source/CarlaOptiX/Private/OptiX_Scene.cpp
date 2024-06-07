@@ -60,6 +60,10 @@ void FCarlaOptiXScene::EnumerateBuildInputs(
 
 void FCarlaOptiXScene::BuildGAS()
 {
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene (%p): GAS build started."),
+		this);
+
 	std::vector<OptixAccelBufferSizes> BufferSizes;
 	std::vector<OptixBuildInput> BuildInputs;
 	std::vector<CUdeviceptr> Pointers;
@@ -88,6 +92,12 @@ void FCarlaOptiXScene::BuildGAS()
 			return l + r.tempSizeInBytes;
 		});
 
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): Computed GAS memory size (out=%llu, temp=%llu)."),
+		this,
+		(unsigned long long)OutSize,
+		(unsigned long long)TempSize);
+
 	FOptixDeviceBuffer TempGASBuffer(OutSize);
 	OptixTraversableHandle TempGAS;
 
@@ -108,6 +118,11 @@ void FCarlaOptiXScene::BuildGAS()
 			0));
 	}
 
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): GAS build finished (handle=%llx), compacting..."),
+		this,
+		(unsigned long long)TempGAS);
+
 	GASBuffer = FOptixDeviceBuffer(OutSize);
 	CheckOptiXResult(optixAccelCompact(
 		OptixInstance->GetOptixDeviceContext(),
@@ -116,6 +131,12 @@ void FCarlaOptiXScene::BuildGAS()
 		GASBuffer.GetDeviceAddress(),
 		GASBuffer.GetSizeBytes(),
 		&GeometryAccelerationStructure));
+
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): GAS compaction finished (old_handle=%llx, final_handle=%llx)."),
+		this,
+		(unsigned long long)TempGAS,
+		(unsigned long long)GeometryAccelerationStructure);
 }
 
 void FCarlaOptiXScene::AddSceneStaticMeshes(UWorld* Source)
@@ -139,14 +160,18 @@ void FCarlaOptiXScene::AddSceneStaticMeshes(UWorld* Source)
 		if (auto Mesh = Cast<UStaticMeshComponent>(Component); Mesh != nullptr)
 			Meshes.Add(Mesh->GetStaticMesh());
 	Components.Empty();
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): Found %llu StaticMeshes."),
+		this,
+		(unsigned long long)Meshes.Num());
 	for (auto Mesh : Meshes)
 		StaticMeshes.push_back(FCarlaOptiXStaticMesh(Mesh));
 }
 
 FCarlaOptiXScene::FCarlaOptiXScene(FCarlaOptiXScene&& Other)
 {
-	memcpy(this, &Other, sizeof(FCarlaOptiXScene));
-	memset(&Other, 0, sizeof(FCarlaOptiXScene));
+	(void)memcpy(this, &Other, sizeof(FCarlaOptiXScene));
+	(void)memset(&Other, 0, sizeof(FCarlaOptiXScene));
 }
 
 FCarlaOptiXScene& FCarlaOptiXScene::operator=(FCarlaOptiXScene&& Other)
@@ -169,6 +194,10 @@ FCarlaOptiXScene::~FCarlaOptiXScene()
 
 void FCarlaOptiXScene::UpdateFromWorld(UWorld* Source)
 {
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): Updating from UWorld %p."),
+		this,
+		Source);
 	AddSceneStaticMeshes(Source);
 	BuildGAS();
 }

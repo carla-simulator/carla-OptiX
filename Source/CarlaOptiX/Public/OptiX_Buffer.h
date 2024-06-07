@@ -95,7 +95,9 @@ public:
 	template <typename T>
 	explicit FOptixDeviceBuffer(std::span<T> HostData)
 	{
-		new (this) FOptixDeviceBuffer(HostData.data(), HostData.size());
+		new (this) FOptixDeviceBuffer(
+			HostData.data(),
+			HostData.size_bytes());
 	}
 
 };
