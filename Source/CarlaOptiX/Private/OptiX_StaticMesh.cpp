@@ -46,6 +46,14 @@ void FCarlaOptiXStaticMesh::Initialize(
 	for (uint32 i = 0; i != IndexCount; ++i)
 		IndicesStagingSpan[i] = IndexBuffer.GetIndex(i);
 
+	check(std::all_of(
+		IndicesStagingSpan.begin(),
+		IndicesStagingSpan.end(),
+		[&](uint32 i)
+		{
+			return i < VertexCount;
+		}));
+
 	Indices = FOptixDeviceArray<uint32>(IndicesStagingSpan);
 
 	for (uint32 i = 0; i != VertexCount; ++i)
@@ -81,13 +89,9 @@ FString FCarlaOptiXStaticMesh::DebugDumpInfoString()
 		FOptixHostArray<FVector3f> VerticesView(Positions);
 		for (auto Position : VerticesView.GetSpan())
 		{
-			Result += '(';
-			Result += FString::FromInt(Position.X);
-			Result += ',';
-			Result += FString::FromInt(Position.Y);
-			Result += ',';
-			Result += FString::FromInt(Position.Z);
-			Result += ")\n";
+			Result += FString::Printf(
+				TEXT("(%f, %f, %f)\n"),
+				Position.X, Position.Y, Position.Z);
 		}
 	}
 	return Result;

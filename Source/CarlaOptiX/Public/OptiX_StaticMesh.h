@@ -31,8 +31,10 @@ public:
 	constexpr auto& GetIndexBuffer() { return Indices; }
 	constexpr auto& GetPositionBuffer() { return Positions; }
 
-	static constexpr auto GetIndexFormat() { return ; }
+	static constexpr auto GetIndexFormat() { return OPTIX_INDICES_FORMAT_UNSIGNED_INT3; }
 	static constexpr auto GetVertexFormat() { return OPTIX_VERTEX_FORMAT_FLOAT3; }
+	static constexpr auto GetVertexStride() { return sizeof(FVector3f); }
+	static constexpr auto GetIndexStride() { return sizeof(uint32) * 3; }
 
 	void Initialize(
 		UStaticMesh* Source,

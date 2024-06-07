@@ -1,6 +1,7 @@
 #include "OptiX_Scene.h"
 #include "OptiX_Instance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Algo/Accumulate.h"
 
 FCarlaOptiXScene::FCarlaOptiXScene()
 {
@@ -16,32 +17,37 @@ FCarlaOptiXScene::FCarlaOptiXScene(FCarlaOptiXInstance* Instance)
 
 void FCarlaOptiXScene::EnumerateBuildInputs(
 	std::vector<OptixBuildInput>& OutBuildInputs,
-	std::vector<CUdeviceptr>& OutPointers)
+	std::vector<CUdeviceptr>& OutPointers,
+	std::vector<unsigned>& OutFlags)
 {
 	OutBuildInputs.resize(StaticMeshes.size());
 	OutPointers.resize(StaticMeshes.size());
+	OutFlags.resize(StaticMeshes.size());
 	for (size_t i = 0; i != StaticMeshes.size(); ++i)
 	{
 		auto& StaticMesh = StaticMeshes[i];
 		auto& Input = OutBuildInputs[i];
 		auto& Pointer = OutPointers[i];
+		auto& Flags = OutFlags[i];
 		auto& IndexBuffer = StaticMesh.GetIndexBuffer();
 		auto& VertexBuffer = StaticMesh.GetPositionBuffer();
+		auto& TriangleArray = Input.triangleArray;
+
+		Flags = OPTIX_GEOMETRY_FLAG_NONE;
 		Pointer = VertexBuffer.GetDeviceAddress();
 		Input.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
-		auto& TriangleArray = Input.triangleArray;
 		TriangleArray.vertexBuffers = &Pointer;
-		TriangleArray.numVertices = 1;
+		TriangleArray.numVertices = VertexBuffer.GetSize();
 		TriangleArray.vertexFormat = StaticMesh.GetVertexFormat();
-		TriangleArray.vertexStrideInBytes = sizeof(FVector3f);
+		TriangleArray.vertexStrideInBytes = StaticMesh.GetVertexStride();
 		TriangleArray.indexBuffer = IndexBuffer.GetDeviceAddress();
 		check((IndexBuffer.GetSize() % 3) == 0);
 		TriangleArray.numIndexTriplets = IndexBuffer.GetSize() / 3;
-		TriangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3; // ???
-		TriangleArray.indexStrideInBytes = 0;
+		TriangleArray.indexFormat = StaticMesh.GetIndexFormat(); // ???
+		TriangleArray.indexStrideInBytes = StaticMesh.GetIndexStride();
 		TriangleArray.preTransform = CUdeviceptr();
-		TriangleArray.flags = nullptr;
 		TriangleArray.numSbtRecords = 1;
+		TriangleArray.flags = &Flags;
 		TriangleArray.sbtIndexOffsetBuffer = CUdeviceptr();
 		TriangleArray.sbtIndexOffsetSizeInBytes = 0;
 		TriangleArray.sbtIndexOffsetStrideInBytes = 0;
@@ -57,14 +63,14 @@ void FCarlaOptiXScene::BuildGAS()
 	std::vector<OptixAccelBufferSizes> BufferSizes;
 	std::vector<OptixBuildInput> BuildInputs;
 	std::vector<CUdeviceptr> Pointers;
-	EnumerateBuildInputs(BuildInputs, Pointers);
+	std::vector<unsigned> Flags;
+	EnumerateBuildInputs(BuildInputs, Pointers, Flags);
 
+	BufferSizes.resize(BuildInputs.size());
 	OptixAccelBuildOptions Options = { };
 	Options.buildFlags = 0;
 	Options.operation = OPTIX_BUILD_OPERATION_BUILD;
 	Options.motionOptions = { };
-
-	BufferSizes.resize(BuildInputs.size());
 	CheckOptiXResult(optixAccelComputeMemoryUsage(
 		OptixInstance->GetOptixDeviceContext(),
 		&Options,
@@ -72,32 +78,37 @@ void FCarlaOptiXScene::BuildGAS()
 		BuildInputs.size(),
 		BufferSizes.data()));
 
-	size_t out_size = 0;
-	size_t temp_size = 0;
-	for (auto& BufferSize : BufferSizes)
+	auto OutSize = Algo::Accumulate<size_t>(BufferSizes, 0, [](size_t l, auto& r)
+		{
+			return l + r.outputSizeInBytes;
+		});
+
+	auto TempSize = Algo::Accumulate<size_t>(BufferSizes, 0, [](size_t l, auto& r)
+		{
+			return l + r.tempSizeInBytes;
+		});
+
+	FOptixDeviceBuffer TempGASBuffer(OutSize);
+	OptixTraversableHandle TempGAS;
+
 	{
-		out_size += BufferSize.outputSizeInBytes;
-		temp_size += BufferSize.tempSizeInBytes;
+		FOptixDeviceBuffer ScratchBuffer(TempSize);
+		CheckOptiXResult(optixAccelBuild(
+			OptixInstance->GetOptixDeviceContext(),
+			0,
+			&Options,
+			BuildInputs.data(),
+			BuildInputs.size(),
+			ScratchBuffer.GetDeviceAddress(),
+			ScratchBuffer.GetSizeBytes(),
+			TempGASBuffer.GetDeviceAddress(),
+			TempGASBuffer.GetSizeBytes(),
+			&TempGAS,
+			nullptr,
+			0));
 	}
 
-	GASBuffer = FOptixDeviceBuffer(out_size);
-	FOptixDeviceBuffer ScratchBuffer(temp_size);
-	FOptixDeviceBuffer TempBuffer(temp_size);
-	OptixTraversableHandle TempGAS;
-	CheckOptiXResult(optixAccelBuild(
-		OptixInstance->GetOptixDeviceContext(),
-		0,
-		&Options,
-		BuildInputs.data(),
-		BuildInputs.size(),
-		ScratchBuffer.GetDeviceAddress(),
-		ScratchBuffer.GetSizeBytes(),
-		TempBuffer.GetDeviceAddress(),
-		TempBuffer.GetSizeBytes(),
-		&TempGAS,
-		nullptr,
-		0));
-	
+	GASBuffer = FOptixDeviceBuffer(OutSize);
 	CheckOptiXResult(optixAccelCompact(
 		OptixInstance->GetOptixDeviceContext(),
 		0,

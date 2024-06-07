@@ -30,7 +30,8 @@ class CARLAOPTIX_API FCarlaOptiXScene
 
 	void EnumerateBuildInputs(
 		std::vector<OptixBuildInput>& OutBuildInputs,
-		std::vector<CUdeviceptr>& OutPointers);
+		std::vector<CUdeviceptr>& OutPointers,
+		std::vector<unsigned>& OutFlags);
 
 	void BuildGAS();
 	void AddSceneStaticMeshes(UWorld* Source);
