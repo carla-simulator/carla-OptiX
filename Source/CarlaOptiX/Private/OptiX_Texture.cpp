@@ -1,24 +1,24 @@
 #include "OptiX_Texture.h"
 
-FOptixTexture::FOptixTexture()
+FCarlaOptiXTexture::FCarlaOptiXTexture()
 {
 }
 
-FOptixTexture::FOptixTexture(FOptixTexture&& rhs)
+FCarlaOptiXTexture::FCarlaOptiXTexture(FCarlaOptiXTexture&& rhs)
 {
 }
 
-FOptixTexture& FOptixTexture::operator=(FOptixTexture&& rhs)
+FCarlaOptiXTexture& FCarlaOptiXTexture::operator=(FCarlaOptiXTexture&& rhs)
 {
-	this->~FOptixTexture();
-	new (this) FOptixTexture(std::move(rhs));
+	this->~FCarlaOptiXTexture();
+	new (this) FCarlaOptiXTexture(std::move(rhs));
 	return *this;
 }
 
-FOptixTexture::~FOptixTexture()
+FCarlaOptiXTexture::~FCarlaOptiXTexture()
 {
 }
 
-void FOptixTexture::Destroy()
+void FCarlaOptiXTexture::Destroy()
 {
 }

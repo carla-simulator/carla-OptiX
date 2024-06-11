@@ -4,12 +4,12 @@
 
 
 
-class CARLAOPTIX_API FOptixHostBuffer;
-class CARLAOPTIX_API FOptixDeviceBuffer;
+class CARLAOPTIX_API FCarlaOptiXHostBuffer;
+class CARLAOPTIX_API FCarlaOptiXDeviceBuffer;
 
 
 
-class CARLAOPTIX_API FOptixHostBuffer
+class CARLAOPTIX_API FCarlaOptiXHostBuffer
 {
 	uint8_t* host_ptr;
 	size_t size;
@@ -37,24 +37,24 @@ public:
 
 	void Destroy();
 
-	constexpr FOptixHostBuffer() :
+	constexpr FCarlaOptiXHostBuffer() :
 		host_ptr(),
 		size()
 	{
 	}
 
-	explicit FOptixHostBuffer(size_t Size);
-	explicit FOptixHostBuffer(FOptixDeviceBuffer& DeviceBuffer);
-	FOptixHostBuffer(const FOptixHostBuffer&) = delete;
-	FOptixHostBuffer& operator=(const FOptixHostBuffer&) = delete;
-	FOptixHostBuffer(FOptixHostBuffer&& rhs);
-	FOptixHostBuffer& operator=(FOptixHostBuffer&& rhs);
-	~FOptixHostBuffer();
+	explicit FCarlaOptiXHostBuffer(size_t Size);
+	explicit FCarlaOptiXHostBuffer(FCarlaOptiXDeviceBuffer& DeviceBuffer);
+	FCarlaOptiXHostBuffer(const FCarlaOptiXHostBuffer&) = delete;
+	FCarlaOptiXHostBuffer& operator=(const FCarlaOptiXHostBuffer&) = delete;
+	FCarlaOptiXHostBuffer(FCarlaOptiXHostBuffer&& rhs);
+	FCarlaOptiXHostBuffer& operator=(FCarlaOptiXHostBuffer&& rhs);
+	~FCarlaOptiXHostBuffer();
 };
 
 
 
-class CARLAOPTIX_API FOptixDeviceBuffer
+class CARLAOPTIX_API FCarlaOptiXDeviceBuffer
 {
 	CUdeviceptr device_ptr;
 	size_t size;
@@ -78,24 +78,24 @@ public:
 
 	void Destroy();
 
-	constexpr FOptixDeviceBuffer() :
+	constexpr FCarlaOptiXDeviceBuffer() :
 		device_ptr(),
 		size()
 	{
 	}
 
-	explicit FOptixDeviceBuffer(size_t Size);
-	FOptixDeviceBuffer(const void* HostData, size_t Size);
-	FOptixDeviceBuffer(const FOptixDeviceBuffer&) = delete;
-	FOptixDeviceBuffer& operator=(const FOptixDeviceBuffer&) = delete;
-	FOptixDeviceBuffer(FOptixDeviceBuffer&& rhs);
-	FOptixDeviceBuffer& operator=(FOptixDeviceBuffer&& rhs);
-	~FOptixDeviceBuffer();
+	explicit FCarlaOptiXDeviceBuffer(size_t Size);
+	FCarlaOptiXDeviceBuffer(const void* HostData, size_t Size);
+	FCarlaOptiXDeviceBuffer(const FCarlaOptiXDeviceBuffer&) = delete;
+	FCarlaOptiXDeviceBuffer& operator=(const FCarlaOptiXDeviceBuffer&) = delete;
+	FCarlaOptiXDeviceBuffer(FCarlaOptiXDeviceBuffer&& rhs);
+	FCarlaOptiXDeviceBuffer& operator=(FCarlaOptiXDeviceBuffer&& rhs);
+	~FCarlaOptiXDeviceBuffer();
 
 	template <typename T>
-	explicit FOptixDeviceBuffer(std::span<T> HostData)
+	explicit FCarlaOptiXDeviceBuffer(std::span<T> HostData)
 	{
-		new (this) FOptixDeviceBuffer(
+		new (this) FCarlaOptiXDeviceBuffer(
 			HostData.data(),
 			HostData.size_bytes());
 	}

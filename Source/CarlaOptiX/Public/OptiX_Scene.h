@@ -16,7 +16,7 @@ class CARLAOPTIX_API FCarlaOptiXScene
 
 	FCarlaOptiXInstance* OptixInstance;
 	OptixTraversableHandle GeometryAccelerationStructure;
-	FOptixDeviceBuffer GASBuffer;
+	FCarlaOptiXDeviceBuffer GASBuffer;
 
 	std::vector<FCarlaOptiXStaticMesh> StaticMeshes;
 

@@ -4,29 +4,29 @@
 
 
 template <typename T>
-class CARLAOPTIX_API FOptixHostArray;
+class CARLAOPTIX_API FCarlaOptiXHostArray;
 
 template <typename T>
-class CARLAOPTIX_API FOptixDeviceArray;
+class CARLAOPTIX_API FCarlaOptiXDeviceArray;
 
 
 
 template <typename T>
-class CARLAOPTIX_API FOptixHostArray :
-	public FOptixHostBuffer
+class CARLAOPTIX_API FCarlaOptiXHostArray :
+	public FCarlaOptiXHostBuffer
 {
 public:
 
-	using FOptixHostBuffer::GetSizeBytes;
+	using FCarlaOptiXHostBuffer::GetSizeBytes;
 
 	constexpr auto GetSize() const
 	{
-		return FOptixHostBuffer::GetSizeBytes() / sizeof(T);
+		return FCarlaOptiXHostBuffer::GetSizeBytes() / sizeof(T);
 	}
 
 	constexpr auto GetData()
 	{
-		return reinterpret_cast<T*>(FOptixHostBuffer::GetData());
+		return reinterpret_cast<T*>(FCarlaOptiXHostBuffer::GetData());
 	}
 
 	constexpr auto GetSpan()
@@ -34,57 +34,57 @@ public:
 		return std::span(GetData(), GetSize());
 	}
 
-	FOptixHostArray() = default;
+	FCarlaOptiXHostArray() = default;
 
-	explicit FOptixHostArray(size_t count) :
-		FOptixHostBuffer(count * sizeof(T))
+	explicit FCarlaOptiXHostArray(size_t count) :
+		FCarlaOptiXHostBuffer(count * sizeof(T))
 	{
 	}
 
 	template <typename T>
-	explicit FOptixHostArray(FOptixDeviceArray<T>& Source) :
-		FOptixHostBuffer(Source)
+	explicit FCarlaOptiXHostArray(FCarlaOptiXDeviceArray<T>& Source) :
+		FCarlaOptiXHostBuffer(Source)
 	{
 	}
 
-	FOptixHostArray(const FOptixHostArray&) = delete;
-	FOptixHostArray& operator=(const FOptixHostArray&) = delete;
-	FOptixHostArray(FOptixHostArray&&) = default;
-	FOptixHostArray& operator=(FOptixHostArray&&) = default;
-	~FOptixHostArray() = default;
+	FCarlaOptiXHostArray(const FCarlaOptiXHostArray&) = delete;
+	FCarlaOptiXHostArray& operator=(const FCarlaOptiXHostArray&) = delete;
+	FCarlaOptiXHostArray(FCarlaOptiXHostArray&&) = default;
+	FCarlaOptiXHostArray& operator=(FCarlaOptiXHostArray&&) = default;
+	~FCarlaOptiXHostArray() = default;
 };
 
 
 
 template <typename T>
-class CARLAOPTIX_API FOptixDeviceArray :
-	public FOptixDeviceBuffer
+class CARLAOPTIX_API FCarlaOptiXDeviceArray :
+	public FCarlaOptiXDeviceBuffer
 {
 public:
 
-	using FOptixDeviceBuffer::GetDeviceAddress;
-	using FOptixDeviceBuffer::GetSizeBytes;
+	using FCarlaOptiXDeviceBuffer::GetDeviceAddress;
+	using FCarlaOptiXDeviceBuffer::GetSizeBytes;
 
 	constexpr auto GetSize() const
 	{
-		return FOptixDeviceBuffer::GetSizeBytes() / sizeof(T);
+		return FCarlaOptiXDeviceBuffer::GetSizeBytes() / sizeof(T);
 	}
 
-	explicit FOptixDeviceArray(size_t count) :
-		FOptixDeviceBuffer(count * sizeof(T))
+	explicit FCarlaOptiXDeviceArray(size_t count) :
+		FCarlaOptiXDeviceBuffer(count * sizeof(T))
 	{
 	}
 
-	explicit FOptixDeviceArray(std::span<T> SourceSpan) :
-		FOptixDeviceBuffer(SourceSpan)
+	explicit FCarlaOptiXDeviceArray(std::span<T> SourceSpan) :
+		FCarlaOptiXDeviceBuffer(SourceSpan)
 	{
 	}
 
-	FOptixDeviceArray() = default;
-	FOptixDeviceArray(const FOptixDeviceArray&) = delete;
-	FOptixDeviceArray& operator=(const FOptixDeviceArray&) = delete;
-	FOptixDeviceArray(FOptixDeviceArray&&) = default;
-	FOptixDeviceArray& operator=(FOptixDeviceArray&&) = default;
-	~FOptixDeviceArray() = default;
+	FCarlaOptiXDeviceArray() = default;
+	FCarlaOptiXDeviceArray(const FCarlaOptiXDeviceArray&) = delete;
+	FCarlaOptiXDeviceArray& operator=(const FCarlaOptiXDeviceArray&) = delete;
+	FCarlaOptiXDeviceArray(FCarlaOptiXDeviceArray&&) = default;
+	FCarlaOptiXDeviceArray& operator=(FCarlaOptiXDeviceArray&&) = default;
+	~FCarlaOptiXDeviceArray() = default;
 
 };

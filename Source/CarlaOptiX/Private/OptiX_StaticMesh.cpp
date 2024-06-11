@@ -31,7 +31,7 @@ void FCarlaOptiXStaticMesh::Initialize(
 	auto IndexBufferSize = IndexCount * sizeof(uint32);
 	auto VertexBufferSize = VertexCount * sizeof(FVector3f);
 
-	FOptixHostBuffer StagingBuffer(std::max(
+	FCarlaOptiXHostBuffer StagingBuffer(std::max(
 		IndexBufferSize,
 		VertexBufferSize));
 
@@ -54,12 +54,12 @@ void FCarlaOptiXStaticMesh::Initialize(
 			return i < VertexCount;
 		}));
 
-	Indices = FOptixDeviceArray<uint32>(IndicesStagingSpan);
+	Indices = FCarlaOptiXDeviceArray<uint32>(IndicesStagingSpan);
 
 	for (uint32 i = 0; i != VertexCount; ++i)
 		VerticesStagingSpan[i] = PositionBuffer.VertexPosition(i);
 
-	Positions = FOptixDeviceArray<FVector3f>(VerticesStagingSpan);
+	Positions = FCarlaOptiXDeviceArray<FVector3f>(VerticesStagingSpan);
 }
 
 void FCarlaOptiXStaticMesh::Destroy()
@@ -77,7 +77,7 @@ FString FCarlaOptiXStaticMesh::DebugDumpInfoString()
 	FString Result;
 	{
 		Result += "Indices:\n";
-		FOptixHostArray<uint32> IndicesView(Indices);
+		FCarlaOptiXHostArray<uint32> IndicesView(Indices);
 		for (auto Index : IndicesView.GetSpan())
 		{
 			Result += FString::FromInt(Index);
@@ -86,7 +86,7 @@ FString FCarlaOptiXStaticMesh::DebugDumpInfoString()
 	}
 	{
 		Result += "Positions:\n";
-		FOptixHostArray<FVector3f> VerticesView(Positions);
+		FCarlaOptiXHostArray<FVector3f> VerticesView(Positions);
 		for (auto Position : VerticesView.GetSpan())
 		{
 			Result += FString::Printf(

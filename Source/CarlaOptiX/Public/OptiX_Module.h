@@ -24,4 +24,6 @@ public:
 	FCarlaOptiXKernelModule& operator=(FCarlaOptiXKernelModule&&);
 	~FCarlaOptiXKernelModule();
 
+	constexpr auto GetHandle() const { return Module; }
+
 };

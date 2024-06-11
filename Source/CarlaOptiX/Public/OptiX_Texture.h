@@ -3,7 +3,7 @@
 
 
 
-class CARLAOPTIX_API FOptixTexture
+class CARLAOPTIX_API FCarlaOptiXTexture
 {
 	CUtexObject Texture;
 	union
@@ -22,12 +22,12 @@ class CARLAOPTIX_API FOptixTexture
 
 public:
 
-	FOptixTexture();
-	FOptixTexture(const FOptixTexture&) = default;
-	FOptixTexture& operator=(const FOptixTexture&) = default;
-	FOptixTexture(FOptixTexture&&);
-	FOptixTexture& operator=(FOptixTexture&&);
-	~FOptixTexture();
+	FCarlaOptiXTexture();
+	FCarlaOptiXTexture(const FCarlaOptiXTexture&) = default;
+	FCarlaOptiXTexture& operator=(const FCarlaOptiXTexture&) = default;
+	FCarlaOptiXTexture(FCarlaOptiXTexture&&);
+	FCarlaOptiXTexture& operator=(FCarlaOptiXTexture&&);
+	~FCarlaOptiXTexture();
 
 	void Destroy();
 

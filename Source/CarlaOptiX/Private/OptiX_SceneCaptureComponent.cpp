@@ -1,4 +1,5 @@
 #include "OptiX_SceneCaptureComponent.h"
+#include "OptiX_Module.h"
 
 
 

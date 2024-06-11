@@ -2,7 +2,7 @@
 
 
 
-FOptixHostBuffer::FOptixHostBuffer(size_t size) :
+FCarlaOptiXHostBuffer::FCarlaOptiXHostBuffer(size_t size) :
 	host_ptr(),
 	size(size)
 {
@@ -11,10 +11,10 @@ FOptixHostBuffer::FOptixHostBuffer(size_t size) :
 	CheckCUDAResult(cuMemAllocHost(reinterpret_cast<void**>(&host_ptr), size));
 }
 
-FOptixHostBuffer::FOptixHostBuffer(
-	FOptixDeviceBuffer& DeviceBuffer)
+FCarlaOptiXHostBuffer::FCarlaOptiXHostBuffer(
+	FCarlaOptiXDeviceBuffer& DeviceBuffer)
 {
-	new (this) FOptixHostBuffer(DeviceBuffer.GetSize());
+	new (this) FCarlaOptiXHostBuffer(DeviceBuffer.GetSize());
 	CARLA_OPTIX_LOG_VERBOSE(
 		TEXT("Copying %llu bytes from device to host memory (0x%llx->0x%p)."),
 		(unsigned long long)DeviceBuffer.GetSizeBytes(),
@@ -23,7 +23,7 @@ FOptixHostBuffer::FOptixHostBuffer(
 	CheckCUDAResult(cuMemcpyDtoH(GetData(), DeviceBuffer.GetDeviceAddress(), DeviceBuffer.GetSizeBytes()));
 }
 
-FOptixHostBuffer::FOptixHostBuffer(FOptixHostBuffer&& rhs) :
+FCarlaOptiXHostBuffer::FCarlaOptiXHostBuffer(FCarlaOptiXHostBuffer&& rhs) :
 	host_ptr(rhs.host_ptr),
 	size(rhs.size)
 {
@@ -31,32 +31,32 @@ FOptixHostBuffer::FOptixHostBuffer(FOptixHostBuffer&& rhs) :
 	rhs.size = 0;
 }
 
-FOptixHostBuffer& FOptixHostBuffer::operator=(FOptixHostBuffer&& rhs)
+FCarlaOptiXHostBuffer& FCarlaOptiXHostBuffer::operator=(FCarlaOptiXHostBuffer&& rhs)
 {
-	this->~FOptixHostBuffer();
-	new (this) FOptixHostBuffer(std::move(rhs));
+	this->~FCarlaOptiXHostBuffer();
+	new (this) FCarlaOptiXHostBuffer(std::move(rhs));
 	return *this;
 }
 
-FOptixHostBuffer::~FOptixHostBuffer()
+FCarlaOptiXHostBuffer::~FCarlaOptiXHostBuffer()
 {
 	if (host_ptr != nullptr)
 		Destroy();
 }
 
-void FOptixHostBuffer::Destroy()
+void FCarlaOptiXHostBuffer::Destroy()
 {
 	CARLA_OPTIX_LOG_VERBOSE(
 		TEXT("Destroying host buffer (address=0x%p, size=%llu)"),
 		GetData(),
 		GetSizeBytes());
 	CheckCUDAResult(cuMemFreeHost(host_ptr));
-	memset(this, 0, sizeof(FOptixHostBuffer));
+	memset(this, 0, sizeof(FCarlaOptiXHostBuffer));
 }
 
 
 
-FOptixDeviceBuffer::FOptixDeviceBuffer(
+FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(
 	size_t size) :
 	device_ptr(),
 	size(size)
@@ -67,9 +67,9 @@ FOptixDeviceBuffer::FOptixDeviceBuffer(
 	CheckCUDAResult(cuMemAlloc(&device_ptr, size));
 }
 
-FOptixDeviceBuffer::FOptixDeviceBuffer(const void* HostData, size_t Size)
+FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(const void* HostData, size_t Size)
 {
-	new (this) FOptixDeviceBuffer(Size);
+	new (this) FCarlaOptiXDeviceBuffer(Size);
 
 	CARLA_OPTIX_LOG_VERBOSE(
 		TEXT("Copying %llu bytes from host to device memory (0x%p->0x%llx)."),
@@ -83,7 +83,7 @@ FOptixDeviceBuffer::FOptixDeviceBuffer(const void* HostData, size_t Size)
 			Size));
 }
 
-FOptixDeviceBuffer::FOptixDeviceBuffer(FOptixDeviceBuffer&& rhs) :
+FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(FCarlaOptiXDeviceBuffer&& rhs) :
 	device_ptr(rhs.device_ptr),
 	size(rhs.size)
 {
@@ -91,20 +91,20 @@ FOptixDeviceBuffer::FOptixDeviceBuffer(FOptixDeviceBuffer&& rhs) :
 	rhs.size = 0;
 }
 
-FOptixDeviceBuffer& FOptixDeviceBuffer::operator=(FOptixDeviceBuffer&& rhs)
+FCarlaOptiXDeviceBuffer& FCarlaOptiXDeviceBuffer::operator=(FCarlaOptiXDeviceBuffer&& rhs)
 {
-	this->~FOptixDeviceBuffer();
-	new (this) FOptixDeviceBuffer(std::move(rhs));
+	this->~FCarlaOptiXDeviceBuffer();
+	new (this) FCarlaOptiXDeviceBuffer(std::move(rhs));
 	return *this;
 }
 
-FOptixDeviceBuffer::~FOptixDeviceBuffer()
+FCarlaOptiXDeviceBuffer::~FCarlaOptiXDeviceBuffer()
 {
 	if (device_ptr != CUdeviceptr())
 		Destroy();
 }
 
-void FOptixDeviceBuffer::Destroy()
+void FCarlaOptiXDeviceBuffer::Destroy()
 {
 	check(device_ptr != CUdeviceptr());
 	CARLA_OPTIX_LOG_VERBOSE(
@@ -112,5 +112,5 @@ void FOptixDeviceBuffer::Destroy()
 		(unsigned long long)GetDeviceAddress(),
 		(unsigned long long)GetSizeBytes());
 	CheckCUDAResult(cuMemFree(device_ptr));
-	memset(this, 0, sizeof(FOptixDeviceBuffer));
+	memset(this, 0, sizeof(FCarlaOptiXDeviceBuffer));
 }

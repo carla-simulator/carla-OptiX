@@ -9,12 +9,12 @@
 
 class CARLAOPTIX_API FCarlaOptiXStaticMesh
 {
-	FOptixDeviceArray<uint32> Indices;
-	FOptixDeviceArray<FVector3f> Positions;
-	// FOptixDeviceArray<FVector3f> Normals;
-	// FOptixDeviceArray<FVector3f> Tangents;
-	// FOptixDeviceArray<FVector3f> TextureUVs;
-	// std::shared_ptr<FOptixMaterial> Material;
+	FCarlaOptiXDeviceArray<uint32> Indices;
+	FCarlaOptiXDeviceArray<FVector3f> Positions;
+	// FCarlaOptiXDeviceArray<FVector3f> Normals;
+	// FCarlaOptiXDeviceArray<FVector3f> Tangents;
+	// FCarlaOptiXDeviceArray<FVector3f> TextureUVs;
+	// std::shared_ptr<FCarlaOptiXMaterial> Material;
 
 public:
 
@@ -67,16 +67,16 @@ public:
 
 
 
-class CARLAOPTIX_API FOptixMesh
+class CARLAOPTIX_API FCarlaOptiXMesh
 {
 	TArray<FCarlaOptiXStaticMesh> Primitives; // Using TArray causes problems with move-only types.
 public:
 
-	FOptixMesh() = default;
-	FOptixMesh(const FOptixMesh&) = delete;
-	FOptixMesh& operator=(const FOptixMesh&) = delete;
-	FOptixMesh(FOptixMesh&&) = default;
-	FOptixMesh& operator=(FOptixMesh&&) = default;
-	~FOptixMesh() = default;
+	FCarlaOptiXMesh() = default;
+	FCarlaOptiXMesh(const FCarlaOptiXMesh&) = delete;
+	FCarlaOptiXMesh& operator=(const FCarlaOptiXMesh&) = delete;
+	FCarlaOptiXMesh(FCarlaOptiXMesh&&) = default;
+	FCarlaOptiXMesh& operator=(FCarlaOptiXMesh&&) = default;
+	~FCarlaOptiXMesh() = default;
 
 };

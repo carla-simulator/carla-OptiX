@@ -3,15 +3,15 @@
 
 
 
-class CARLAOPTIX_API FOptixMaterial
+class CARLAOPTIX_API FCarlaOptiXMaterial
 {
 public:
 
-	FOptixMaterial() = default;
-	FOptixMaterial(const FOptixMaterial&) = delete;
-	FOptixMaterial& operator=(const FOptixMaterial&) = delete;
-	FOptixMaterial(FOptixMaterial&&) = default;
-	FOptixMaterial& operator=(FOptixMaterial&&) = default;
-	~FOptixMaterial() = default;
+	FCarlaOptiXMaterial() = default;
+	FCarlaOptiXMaterial(const FCarlaOptiXMaterial&) = delete;
+	FCarlaOptiXMaterial& operator=(const FCarlaOptiXMaterial&) = delete;
+	FCarlaOptiXMaterial(FCarlaOptiXMaterial&&) = default;
+	FCarlaOptiXMaterial& operator=(FCarlaOptiXMaterial&&) = default;
+	~FCarlaOptiXMaterial() = default;
 
 };

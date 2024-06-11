@@ -98,11 +98,11 @@ void FCarlaOptiXScene::BuildGAS()
 		(unsigned long long)OutSize,
 		(unsigned long long)TempSize);
 
-	FOptixDeviceBuffer TempGASBuffer(OutSize);
+	FCarlaOptiXDeviceBuffer TempGASBuffer(OutSize);
 	OptixTraversableHandle TempGAS;
 
 	{
-		FOptixDeviceBuffer ScratchBuffer(TempSize);
+		FCarlaOptiXDeviceBuffer ScratchBuffer(TempSize);
 		CheckOptiXResult(optixAccelBuild(
 			OptixInstance->GetOptixDeviceContext(),
 			0,
@@ -123,7 +123,7 @@ void FCarlaOptiXScene::BuildGAS()
 		this,
 		(unsigned long long)TempGAS);
 
-	GASBuffer = FOptixDeviceBuffer(OutSize);
+	GASBuffer = FCarlaOptiXDeviceBuffer(OutSize);
 	CheckOptiXResult(optixAccelCompact(
 		OptixInstance->GetOptixDeviceContext(),
 		0,
