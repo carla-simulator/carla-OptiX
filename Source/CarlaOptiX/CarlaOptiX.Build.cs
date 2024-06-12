@@ -141,7 +141,7 @@ public class CarlaOptiX : ModuleRules
         case ".ch.cu":
           Value.ClosestHit = KernelSourceStringPath;
           break;
-        case ".i.cu":
+        case ".is.cu":
           Value.Intersection = KernelSourceStringPath;
           break;
         case ".m.cu":
