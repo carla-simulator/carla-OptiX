@@ -1,5 +1,6 @@
 #include "OptiX_Scene.h"
 #include "OptiX_Instance.h"
+#include "OptiX_Pipeline.h"
 #include "Kismet/GameplayStatics.h"
 #include "Algo/Accumulate.h"
 
@@ -56,6 +57,35 @@ void FCarlaOptiXScene::EnumerateBuildInputs(
 		TriangleArray.opacityMicromap = OptixBuildInputOpacityMicromap();
 		TriangleArray.displacementMicromap = OptixBuildInputDisplacementMicromap();
 	}
+}
+
+void FCarlaOptiXScene::AddSceneStaticMeshes(UWorld* Source)
+{
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsOfClass(
+		Source,
+		AActor::StaticClass(),
+		Actors);
+	TArray<UActorComponent*> Components;
+	for (auto Actor : Actors)
+	{
+		auto ActorComponents = Actor->GetComponents();
+		Components.Reserve(Components.Num() + ActorComponents.Num());
+		for (auto Component : ActorComponents)
+			Components.Add(Component);
+	}
+	Actors.Empty();
+	TArray<UStaticMesh*> Meshes;
+	for (auto Component : Components)
+		if (auto Mesh = Cast<UStaticMeshComponent>(Component); Mesh != nullptr)
+			Meshes.Add(Mesh->GetStaticMesh());
+	Components.Empty();
+	CARLA_OPTIX_LOG_VERBOSE(
+		TEXT("FCarlaOptiXScene(%p): Found %llu StaticMeshes."),
+		this,
+		(unsigned long long)Meshes.Num());
+	for (auto Mesh : Meshes)
+		StaticMeshes.push_back(FCarlaOptiXStaticMesh(Mesh));
 }
 
 void FCarlaOptiXScene::BuildGAS()
@@ -139,35 +169,6 @@ void FCarlaOptiXScene::BuildGAS()
 		(unsigned long long)GeometryAccelerationStructure);
 }
 
-void FCarlaOptiXScene::AddSceneStaticMeshes(UWorld* Source)
-{
-	TArray<AActor*> Actors;
-	UGameplayStatics::GetAllActorsOfClass(
-		Source,
-		AActor::StaticClass(),
-		Actors);
-	TArray<UActorComponent*> Components;
-	for (auto Actor : Actors)
-	{
-		auto ActorComponents = Actor->GetComponents();
-		Components.Reserve(Components.Num() + ActorComponents.Num());
-		for (auto Component : ActorComponents)
-			Components.Add(Component);
-	}
-	Actors.Empty();
-	TArray<UStaticMesh*> Meshes;
-	for (auto Component : Components)
-		if (auto Mesh = Cast<UStaticMeshComponent>(Component); Mesh != nullptr)
-			Meshes.Add(Mesh->GetStaticMesh());
-	Components.Empty();
-	CARLA_OPTIX_LOG_VERBOSE(
-		TEXT("FCarlaOptiXScene(%p): Found %llu StaticMeshes."),
-		this,
-		(unsigned long long)Meshes.Num());
-	for (auto Mesh : Meshes)
-		StaticMeshes.push_back(FCarlaOptiXStaticMesh(Mesh));
-}
-
 FCarlaOptiXScene::FCarlaOptiXScene(FCarlaOptiXScene&& Other)
 {
 	(void)memcpy(this, &Other, sizeof(FCarlaOptiXScene));
@@ -192,7 +193,8 @@ FCarlaOptiXScene::~FCarlaOptiXScene()
 #endif
 }
 
-void FCarlaOptiXScene::UpdateFromWorld(UWorld* Source)
+void FCarlaOptiXScene::UpdateFromWorld(
+	UWorld* Source)
 {
 	CARLA_OPTIX_LOG_VERBOSE(
 		TEXT("FCarlaOptiXScene(%p): Updating from UWorld %p."),
@@ -200,6 +202,11 @@ void FCarlaOptiXScene::UpdateFromWorld(UWorld* Source)
 		Source);
 	AddSceneStaticMeshes(Source);
 	BuildGAS();
+}
+
+void FCarlaOptiXScene::DispatchKernel(
+	FCarlaOptiXPipeline& Pipeline)
+{
 }
 
 
@@ -219,13 +226,12 @@ void ACarlaOptiXScene::Initialize()
 
 void ACarlaOptiXScene::UpdateFromWorld(UWorld* Source)
 {
+	check(Source);
 	check(Implementation.IsValid());
 	Implementation.UpdateFromWorld(Source);
 }
 
 void ACarlaOptiXScene::UpdateFromCurrentWorld()
 {
-	auto World = GetWorld();
-	check(World);
-	UpdateFromWorld(World);
+	UpdateFromWorld(GetWorld());
 }

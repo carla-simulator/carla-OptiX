@@ -32,12 +32,12 @@ public class CarlaOptiX : ModuleRules
     var Files = new List<string>();
     foreach (var File in Directory.GetFiles(InPath))
     {
-		if (Path.GetExtension(File) == ".cu")
-        {
-			Console.WriteLine("Found " + File);
-			Files.Add(File);
-		}
-	}
+      if (Path.GetExtension(File) == ".cu")
+      {
+        Console.WriteLine("Found " + File);
+        Files.Add(File);
+      }
+    }
     foreach (var SubDirectory in Directory.GetDirectories(InPath))
       Files.AddRange(EnumerateCUDAKernels(SubDirectory));
     return Files;
@@ -47,7 +47,7 @@ public class CarlaOptiX : ModuleRules
   {
     PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
     CppStandard = CppStandardVersion.Latest;
-    
+
     var PluginSourcePath = Path.Combine(PluginDirectory, "Source", "CarlaOptiX");
     var KernelSourcePath = Path.Combine(PluginSourcePath, "Kernel");
     var KernelStringPath = Path.Combine(PluginSourcePath, "Private", "KernelStrings");
@@ -159,23 +159,43 @@ public class CarlaOptiX : ModuleRules
     var ModuleList = "#pragma once \n";
     foreach (var Entry in KernelMap)
     {
+      var RayGenDirective =
+        Entry.Value.RayGen.Length != 0 ?
+        $"#include \"{Entry.Value.RayGen}\"" :
+        "\"\"";
+      var AnyHitDirective =
+        Entry.Value.AnyHit.Length != 0 ?
+        $"#include \"{Entry.Value.AnyHit}\"" :
+        "\"\"";
+      var ClosestHitDirective =
+        Entry.Value.ClosestHit.Length != 0 ?
+        $"#include \"{Entry.Value.ClosestHit}\"" :
+        "\"\"";
+      var IntersectionDirective =
+        Entry.Value.Intersection.Length != 0 ?
+        $"#include \"{Entry.Value.Intersection}\"" :
+        "\"\"";
+      var MissDirective =
+        Entry.Value.Miss.Length != 0 ?
+        $"#include \"{Entry.Value.Miss}\"" :
+        "\"\"";
       ModuleList +=
 $@"struct F{Entry.Key}ModuleGroup
 {{
 static constexpr char RayGen[] =
-#include ""{Entry.Value.RayGen}""
+{RayGenDirective}
 ;
 static constexpr char AnyHit[] =
-#include ""{Entry.Value.AnyHit}""
+{AnyHitDirective}
 ;
 static constexpr char ClosestHit[] =
-#include ""{Entry.Value.ClosestHit}""
+{ClosestHitDirective}
 ;
 static constexpr char Intersection[] =
-#include ""{Entry.Value.Intersection}""
+{IntersectionDirective}
 ;
 static constexpr char Miss[] =
-#include ""{Entry.Value.Miss}""
+{MissDirective}
 ;
 }};";
       ModuleList += '\n';

@@ -7,6 +7,7 @@
 
 class CARLAOPTIX_API FCarlaOptiXInstance;
 class CARLAOPTIX_API ACarlaOptiXScene;
+class CARLAOPTIX_API FCarlaOptiXPipeline;
 
 
 
@@ -20,21 +21,13 @@ class CARLAOPTIX_API FCarlaOptiXScene
 
 	std::vector<FCarlaOptiXStaticMesh> StaticMeshes;
 
-	OptixModuleCompileOptions ModuleCompileOptions;
-	OptixPipelineLinkOptions PipelineLinkOptions;
-	OptixProgramGroupOptions ProgramGroupOptions;
-	OptixPipeline Pipeline;
-	OptixShaderBindingTable ShaderBindingTable;
-	OptixFunctionTable FunctionTable;
-	OptixDeviceContext DeviceContext;
-
 	void EnumerateBuildInputs(
 		std::vector<OptixBuildInput>& OutBuildInputs,
 		std::vector<CUdeviceptr>& OutPointers,
 		std::vector<unsigned>& OutFlags);
 
-	void BuildGAS();
 	void AddSceneStaticMeshes(UWorld* Source);
+	void BuildGAS();
 
 public:
 
@@ -48,6 +41,7 @@ public:
 	~FCarlaOptiXScene();
 
 	void UpdateFromWorld(UWorld* Source);
+	void DispatchKernel(FCarlaOptiXPipeline& Pipeline);
 
 	constexpr bool IsValid() const { return OptixInstance != nullptr; }
 	constexpr auto& GetOptixInstance() { return *OptixInstance; }

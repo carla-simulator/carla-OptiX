@@ -21,7 +21,7 @@ void FCarlaOptiXModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-thread_local char LogBuffer[4096];
+thread_local char LogBuffer[CARLA_OPTIX_LOG_BUFFER_SIZE];
 
 IMPLEMENT_MODULE(FCarlaOptiXModule, CarlaOptiX)
 DEFINE_LOG_CATEGORY(LogCarlaOptiX)

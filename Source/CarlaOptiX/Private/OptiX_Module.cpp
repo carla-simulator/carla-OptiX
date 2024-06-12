@@ -1,6 +1,8 @@
 #include "OptiX_Module.h"
 #include "OptiX_Instance.h"
 
+extern thread_local char LogBuffer[CARLA_OPTIX_LOG_BUFFER_SIZE];
+
 FCarlaOptiXKernelModule::FCarlaOptiXKernelModule()
 {
 }
@@ -11,13 +13,14 @@ FCarlaOptiXKernelModule::FCarlaOptiXKernelModule(
 	const OptixModuleCompileOptions& ModuleOptions,
 	const OptixPipelineCompileOptions& PipelineOptions)
 {
+	size_t LogBufferSize = CARLA_OPTIX_LOG_BUFFER_SIZE;
 	CheckOptiXResult(optixModuleCreate(
 		Instance.GetOptixDeviceContext(),
 		&ModuleOptions,
 		&PipelineOptions,
 		Source.data(),
 		Source.size(),
-		nullptr,
+		LogBuffer,
 		nullptr,
 		&Module));
 }

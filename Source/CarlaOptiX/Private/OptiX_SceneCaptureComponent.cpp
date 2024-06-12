@@ -1,13 +1,15 @@
 #include "OptiX_SceneCaptureComponent.h"
 #include "OptiX_Module.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 
 
 ASceneCaptureComponentNVOptiX::ASceneCaptureComponentNVOptiX(
 	const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer),
-	Scene()
+	Super(ObjectInitializer)
 {
+	RenderTargetUE = CreateDefaultSubobject<UTextureRenderTarget2D>(
+		TEXT("RenderTarget"));
 }
 
 void ASceneCaptureComponentNVOptiX::BeginPlay()

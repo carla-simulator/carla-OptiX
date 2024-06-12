@@ -28,6 +28,8 @@ public:
 
 	void Destroy();
 
+	constexpr bool IsValid() const { return Handle != OptixPipeline(); }
+
 	void Launch(
 		FCarlaOptiXShaderBindingTable& SBT,
 		FCarlaOptiXDeviceBuffer& ParamsBuffer,

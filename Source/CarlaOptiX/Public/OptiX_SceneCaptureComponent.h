@@ -5,18 +5,16 @@
 
 
 
-class FCarlaOptiXScene;
+class CARLAOPTIX_API FCarlaOptiXScene;
+class UTextureRenderTarget2D;
 
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class CARLAOPTIX_API ASceneCaptureComponentNVOptiX :
 	public AActor
 {
 	GENERATED_BODY()
-
-	FCarlaOptiXScene* Scene;
-
 public:
 
 	ASceneCaptureComponentNVOptiX(
@@ -28,5 +26,12 @@ public:
 		const EEndPlayReason::Type EndPlayReason) override;
 
 	void RenderScene();
+
+private:
+
+	FCarlaOptiXScene* Scene;
+
+	UPROPERTY(EditAnywhere)
+	UTextureRenderTarget2D* RenderTargetUE;
 
 };

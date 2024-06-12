@@ -3,7 +3,7 @@
 #include "OptiX_Buffer.h"
 #include "OptiX_ShaderBindingTable.h"
 
-extern thread_local char LogBuffer[4096];
+extern thread_local char LogBuffer[CARLA_OPTIX_LOG_BUFFER_SIZE];
 
 FCarlaOptiXPipeline::FCarlaOptiXPipeline(
 	FCarlaOptiXInstance& Instance,
@@ -11,7 +11,7 @@ FCarlaOptiXPipeline::FCarlaOptiXPipeline(
 	const OptixPipelineCompileOptions& CompileOptions,
 	const OptixPipelineLinkOptions& LinkOptions)
 {
-	size_t LogBufferSize = sizeof(LogBuffer);
+	size_t LogBufferSize = CARLA_OPTIX_LOG_BUFFER_SIZE;
 	CheckOptiXResult(optixPipelineCreate(
 		Instance.GetOptixDeviceContext(),
 		&CompileOptions,

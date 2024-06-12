@@ -12,6 +12,10 @@
 
 
 
+constexpr size_t CARLA_OPTIX_LOG_BUFFER_SIZE = 4096;
+
+
+
 void CheckCUDAResult(
 	CUresult ec,
 	std::source_location loc = std::source_location::current());

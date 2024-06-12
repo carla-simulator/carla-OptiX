@@ -2,69 +2,69 @@
 #include "OptiX_Instance.h"
 #include "OptiX_Module.h"
 
-extern thread_local char LogBuffer[4096];
+extern thread_local char LogBuffer[CARLA_OPTIX_LOG_BUFFER_SIZE];
 
 OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeRayGenProgGroupDescription(
-	FCarlaOptiXKernelModule& Module,
+	OptixModule ModuleHandle,
 	const char* EntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
 	Result.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-	Result.raygen.module = Module.GetHandle();
+	Result.raygen.module = ModuleHandle;
 	Result.raygen.entryFunctionName = EntryPoint;
 	return Result;
 }
 
 OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeMissProgGroupDescription(
-	FCarlaOptiXKernelModule& Module,
+	OptixModule ModuleHandle,
 	const char* EntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
 	Result.kind = OPTIX_PROGRAM_GROUP_KIND_MISS;
-	Result.miss.module = Module.GetHandle();
+	Result.miss.module = ModuleHandle;
 	Result.miss.entryFunctionName = EntryPoint;
 	return Result;
 }
 
 OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeExceptionProgGroupDescription(
-	FCarlaOptiXKernelModule& Module,
+	OptixModule ModuleHandle,
 	const char* EntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
 	Result.kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
-	Result.exception.module = Module.GetHandle();
+	Result.exception.module = ModuleHandle;
 	Result.exception.entryFunctionName = EntryPoint;
 	return Result;
 }
 
 OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeCallableProgGroupDescription(
-	FCarlaOptiXKernelModule& DirectCallableModule,
-	FCarlaOptiXKernelModule& ContinuationCallableModule,
+	OptixModule DirectCallableModuleHandle,
+	OptixModule ContinuationCallableModuleHandle,
 	const char* DCEntryPoint,
 	const char* CCEntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
 	Result.kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
-	Result.callables.moduleDC = DirectCallableModule.GetHandle();
-	Result.callables.moduleCC = ContinuationCallableModule.GetHandle();
+	Result.callables.moduleDC = DirectCallableModuleHandle;
+	Result.callables.moduleCC = ContinuationCallableModuleHandle;
 	Result.callables.entryFunctionNameDC = DCEntryPoint;
 	Result.callables.entryFunctionNameCC = CCEntryPoint;
 	return Result;
 }
 
 OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeHitGroupProgGroupDescription(
-	FCarlaOptiXKernelModule& ClosestHitModule,
-	FCarlaOptiXKernelModule& AnyHitModule,
-	FCarlaOptiXKernelModule& IntersectionModule,
+	OptixModule ClosestHitModuleHandle,
+	OptixModule AnyHitModuleHandle,
+	OptixModule IntersectionModuleHandle,
 	const char* CHEntryPoint,
 	const char* AHEntryPoint,
 	const char* IEntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
 	Result.kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
-	Result.hitgroup.moduleCH = ClosestHitModule.GetHandle();
-	Result.hitgroup.moduleAH = AnyHitModule.GetHandle();
-	Result.hitgroup.moduleIS = IntersectionModule.GetHandle();
+	Result.hitgroup.moduleCH = ClosestHitModuleHandle;
+	Result.hitgroup.moduleAH = AnyHitModuleHandle;
+	Result.hitgroup.moduleIS = IntersectionModuleHandle;
 	Result.hitgroup.entryFunctionNameCH = CHEntryPoint;
 	Result.hitgroup.entryFunctionNameAH = AHEntryPoint;
 	Result.hitgroup.entryFunctionNameIS = IEntryPoint;
@@ -76,7 +76,7 @@ FCarlaOptiXProgramGroup::FCarlaOptiXProgramGroup(
 	std::span<OptixProgramGroupDesc> Descriptions,
 	const OptixProgramGroupOptions& Options)
 {
-	size_t LogBufferSize = sizeof(LogBuffer);
+	size_t LogBufferSize = CARLA_OPTIX_LOG_BUFFER_SIZE;
 	CheckOptiXResult(optixProgramGroupCreate(
 		Instance.GetOptixDeviceContext(),
 		Descriptions.data(),
