@@ -89,6 +89,12 @@ ASceneTraceComponentNVOptiX::ASceneTraceComponentNVOptiX(
 {
 }
 
+ASceneTraceComponentNVOptiX::~ASceneTraceComponentNVOptiX()
+{
+	if (stc_pipeline_ref_count.fetch_sub(1, std::memory_order_acquire) - 1 == 0)
+		STCCleanup();
+}
+
 void ASceneTraceComponentNVOptiX::BeginPlay()
 {
 	if (stc_pipeline_ref_count.fetch_add(1, std::memory_order_acquire) == 0)
@@ -98,8 +104,6 @@ void ASceneTraceComponentNVOptiX::BeginPlay()
 void ASceneTraceComponentNVOptiX::EndPlay(
 	const EEndPlayReason::Type EndPlayReason)
 {
-	if (stc_pipeline_ref_count.fetch_sub(1, std::memory_order_acquire) == 1)
-		STCCleanup();
 }
 
 void ASceneTraceComponentNVOptiX::TraceRays()

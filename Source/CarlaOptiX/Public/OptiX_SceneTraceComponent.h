@@ -23,6 +23,8 @@ public:
 	ASceneTraceComponentNVOptiX(
 		const FObjectInitializer& ObjectInitializer);
 
+	~ASceneTraceComponentNVOptiX();
+
 	void BeginPlay() override;
 
 	void EndPlay(
