@@ -41,9 +41,12 @@ FCarlaOptiXKernelModule& FCarlaOptiXKernelModule::operator=(FCarlaOptiXKernelMod
 FCarlaOptiXKernelModule::~FCarlaOptiXKernelModule()
 {
 	if (Module != OptixModule())
-	{
-		optixModuleDestroy(Module);
-		Module = OptixModule();
-	}
+		Destroy();
+}
+
+void FCarlaOptiXKernelModule::Destroy()
+{
+	optixModuleDestroy(Module);
+	Module = OptixModule();
 }
 

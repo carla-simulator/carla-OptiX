@@ -16,6 +16,11 @@ constexpr size_t CARLA_OPTIX_LOG_BUFFER_SIZE = 4096;
 
 
 
+template <typename T>
+using DevicePtr = CUdeviceptr;
+
+
+
 enum class EModuleStageKind : uint8_t
 {
 	AnyHit,
@@ -43,7 +48,7 @@ bool IsCarlaOptiXVerboseLoggingEnabled();
 
 constexpr size_t ToWordCount(size_t x)
 {
-	return ((x + 31) & ~(size_t)31) >> 5;
+	return ((x + 3) & ~(size_t)3) >> 2;
 }
 
 template <typename T>

@@ -28,14 +28,6 @@ public:
 	void EndPlay(
 		const EEndPlayReason::Type EndPlayReason) override;
 
-	void SetPipeline(FCarlaOptiXPipeline&& NewPipeline);
-
-	void SetPipeline(std::shared_ptr<FCarlaOptiXPipeline> NewPipeline);
-
-	void SetModule(FCarlaOptiXKernelModule&& NewModule);
-
-	void SetModule(std::shared_ptr<FCarlaOptiXKernelModule> NewModule);
-
 	void TraceRays();
 
 	FCarlaOptiXDeviceArray<FVector3f>& GetHitBuffer();
@@ -58,9 +50,6 @@ public:
 private:
 
 	FCarlaOptiXScene* Scene;
-
-	std::shared_ptr<FCarlaOptiXKernelModule> Module;
-	std::shared_ptr<FCarlaOptiXPipeline> Pipeline;
 
 	FCarlaOptiXDeviceArray<FVector3f> HitBuffer;
 

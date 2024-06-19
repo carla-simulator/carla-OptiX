@@ -24,6 +24,8 @@ public:
 	FCarlaOptiXKernelModule& operator=(FCarlaOptiXKernelModule&&);
 	~FCarlaOptiXKernelModule();
 
+	void Destroy();
+
 	constexpr bool IsValid() const { return Module != OptixModule(); }
 	constexpr auto GetHandle() const { return Module; }
 

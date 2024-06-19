@@ -23,10 +23,7 @@ struct RayContext
 
 
 
-extern "C"
-{
-	__constant__ KernelArgs args;
-}
+extern "C" __constant__ KernelArgs args;
 
 
 
@@ -70,14 +67,23 @@ extern "C" __global__ void __anyhit__main()
 extern "C" __global__ void __closesthit__main()
 {
 	const uint3 launch_id = optixGetLaunchIndex();
+	auto& ray_ctx = *(RayContext*)MAKE_POINTER(
+		optixGetPayload_0(),
+		optixGetPayload_1());
 }
 
 extern "C" __global__ void __miss__main()
 {
 	const uint3 launch_id = optixGetLaunchIndex();
+	auto& ray_ctx = *(RayContext*)MAKE_POINTER(
+		optixGetPayload_0(),
+		optixGetPayload_1());
 }
 
 extern "C" __global__ void __intersection__main()
 {
 	const uint3 launch_id = optixGetLaunchIndex();
+	auto& ray_ctx = *(RayContext*)MAKE_POINTER(
+		optixGetPayload_0(),
+		optixGetPayload_1());
 }

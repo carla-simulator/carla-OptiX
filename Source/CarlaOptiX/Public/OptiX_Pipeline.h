@@ -38,18 +38,11 @@ public:
 		FCarlaOptiXInstance& Instance,
 		const TCHAR* PTXPath,
 		const OptixPipelineCompileOptions& CompileOptions,
-		std::span<const OptixPayloadType> Payloads,
 		unsigned MaxTraceDepth = 31)
 	{
 		std::vector<OptixProgramGroupDesc> ProgGroupDescs;
-		std::vector<FCarlaOptiXProgramGroup> ProgGroups;
 
-		check(Payloads.size() == 1);
-
-		OptixProgramGroupOptions ProgGroupOptions;
-		ProgGroupOptions.payloadType = Payloads.data();
-
-		OptixModuleCompileOptions ModuleOptions;
+		OptixModuleCompileOptions ModuleOptions = { };
 		ModuleOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
 #ifdef CARLA_OPTIX_DEBUG
 		ModuleOptions.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
@@ -58,10 +51,6 @@ public:
 		ModuleOptions.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
 		ModuleOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 #endif
-		ModuleOptions.boundValues = nullptr;
-		ModuleOptions.numBoundValues = 0;
-		ModuleOptions.numPayloadTypes = 0;
-		ModuleOptions.payloadTypes = nullptr;
 		
 		TArray64<uint8> OptiXByteCode;
 		check(FFileHelper::LoadFileToArray(
@@ -114,17 +103,18 @@ public:
 			}
 		}
 
-		ProgGroups.push_back(FCarlaOptiXProgramGroup(
+		OptixProgramGroupOptions ProgGroupOptions = { };
+		FCarlaOptiXProgramGroup ProgramGroup(
 			Instance,
 			ProgGroupDescs,
-			ProgGroupOptions));
+			ProgGroupOptions);
 
 		OptixPipelineLinkOptions LinkOptions = {};
 		LinkOptions.maxTraceDepth = MaxTraceDepth;
 
 		FCarlaOptiXPipeline Pipeline(
 			Instance,
-			ProgGroups,
+			std::span(&ProgramGroup, 1),
 			CompileOptions,
 			LinkOptions);
 
