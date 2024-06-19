@@ -44,7 +44,7 @@ public:
 	}
 
 	explicit FCarlaOptiXHostBuffer(size_t Size);
-	explicit FCarlaOptiXHostBuffer(FCarlaOptiXDeviceBuffer& DeviceBuffer);
+	explicit FCarlaOptiXHostBuffer(const FCarlaOptiXDeviceBuffer& DeviceBuffer);
 	FCarlaOptiXHostBuffer(const FCarlaOptiXHostBuffer&) = delete;
 	FCarlaOptiXHostBuffer& operator=(const FCarlaOptiXHostBuffer&) = delete;
 	FCarlaOptiXHostBuffer(FCarlaOptiXHostBuffer&& rhs);
@@ -61,7 +61,7 @@ class CARLAOPTIX_API FCarlaOptiXDeviceBuffer
 
 public:
 
-	constexpr auto GetDeviceAddress()
+	constexpr auto GetDeviceAddress() const
 	{
 		return device_ptr;
 	}

@@ -16,6 +16,19 @@ constexpr size_t CARLA_OPTIX_LOG_BUFFER_SIZE = 4096;
 
 
 
+enum class EModuleStageKind : uint8_t
+{
+	AnyHit,
+	ClosestHit,
+	Miss,
+	Intersection,
+	RayGen,
+	Exception,
+	Callable // @This may be incorrect.
+};
+
+
+
 void CheckCUDAResult(
 	CUresult ec,
 	std::source_location loc = std::source_location::current());
@@ -25,6 +38,16 @@ void CheckOptiXResult(
 	std::source_location loc = std::source_location::current());
 
 bool IsCarlaOptiXVerboseLoggingEnabled();
+
+
+
+constexpr size_t ToWordCount(size_t x)
+{
+	return ((x + 31) & ~(size_t)31) >> 5;
+}
+
+template <typename T>
+constexpr size_t GetWordCountOf = ToWordCount(sizeof(T));
 
 
 

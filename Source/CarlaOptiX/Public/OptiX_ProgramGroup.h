@@ -17,29 +17,29 @@ public:
 
 	static OptixProgramGroupDesc MakeRayGenProgGroupDescription(
 		OptixModule ModuleHandle,
-		const char* EntryPoint = "RayGenMain");
+		const char* EntryPoint = "__raygen__main");
 
 	static OptixProgramGroupDesc MakeMissProgGroupDescription(
 		OptixModule ModuleHandle,
-		const char* EntryPoint = "MissMain");
+		const char* EntryPoint = "__miss__main");
 
 	static OptixProgramGroupDesc MakeExceptionProgGroupDescription(
 		OptixModule ModuleHandle,
-		const char* EntryPoint = "ExceptionMain");
+		const char* EntryPoint = "__exception__main");
 
 	static OptixProgramGroupDesc MakeCallableProgGroupDescription(
 		OptixModule DirectCallableModuleHandle,
 		OptixModule ContinuationCallableModuleHandle,
-		const char* DCEntryPoint = "DirectCallableMain",
-		const char* CCEntryPoint = "ContinuationCallableMain");
+		const char* DCEntryPoint = "__direct_callable__main",
+		const char* CCEntryPoint = "__continuation_callable__main");
 
 	static OptixProgramGroupDesc MakeHitGroupProgGroupDescription(
 		OptixModule ClosestHitModuleHandle,
 		OptixModule AnyHitModuleHandle,
 		OptixModule IntersectionModuleHandle,
-		const char* CHEntryPoint = "ClosestHitMain",
-		const char* AHEntryPoint = "AnyHitMain",
-		const char* IEntryPoint = "IntersectionMain");
+		const char* CHEntryPoint = "__closesthit__main",
+		const char* AHEntryPoint = "__anyhit__main",
+		const char* IEntryPoint = "__intersection__main");
 
 	constexpr auto GetHandle() { return Handle; }
 
@@ -55,68 +55,4 @@ public:
 	~FCarlaOptiXProgramGroup();
 
 	void Destroy();
-
-	template <typename T>
-	static FCarlaOptiXProgramGroup CreateFromTraitsType(
-		FCarlaOptiXInstance& Instance,
-		const OptixProgramGroupOptions& Options,
-		const OptixPipelineCompileOptions& PipelineCompileOptions,
-		std::vector<FCarlaOptiXKernelModule>& OutModules)
-	{
-		const std::string_view RayGen = T::RayGen;
-		const std::string_view AnyHit = T::AnyHit;
-		const std::string_view ClosestHit = T::ClosestHit;
-		const std::string_view Intersection = T::Intersection;
-		const std::string_view Miss = T::Miss;
-
-		std::vector<OptixProgramGroupDesc> ProgDescs;
-		ProgDescs.reserve(5);
-
-		auto AH = OptixModule();
-		auto CH = OptixModule();
-		auto IS = OptixModule();
-		size_t HitGroupHandleCount = 0;
-
-		auto AddModule = [&](std::string_view Source)
-		{
-			check(!Source.empty());
-			OptixModuleCompileOptions Options; // @TODO
-			OutModules.push_back(FCarlaOptiXKernelModule(
-				Instance,
-				std::span(Source.data(), Source.size()),
-				Options,
-				PipelineCompileOptions));
-			return OutModules.back().GetHandle();
-		};
-
-		if (!RayGen.empty())
-			ProgDescs.push_back(MakeRayGenProgGroupDescription(AddModule(RayGen)));
-
-		if (!Miss.empty())
-			ProgDescs.push_back(MakeMissProgGroupDescription(AddModule(Miss)));
-
-		if (!AnyHit.empty())
-		{
-			AH = AddModule(AnyHit);
-			++HitGroupHandleCount;
-		}
-
-		if (!ClosestHit.empty())
-		{
-			CH = AddModule(ClosestHit);
-			++HitGroupHandleCount;
-		}
-
-		if (!Intersection.empty())
-		{
-			IS = AddModule(Intersection);
-			++HitGroupHandleCount;
-		}
-
-		if (HitGroupHandleCount != 0)
-			ProgDescs.push_back(MakeHitGroupProgGroupDescription(CH, AH, IS));
-
-		return FCarlaOptiXProgramGroup(Instance, ProgDescs, Options);
-	}
-
 };

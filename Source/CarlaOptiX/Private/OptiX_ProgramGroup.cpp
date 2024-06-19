@@ -44,7 +44,7 @@ OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeCallableProgGroupDescription(
 	const char* CCEntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
-	Result.kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
+	Result.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
 	Result.callables.moduleDC = DirectCallableModuleHandle;
 	Result.callables.moduleCC = ContinuationCallableModuleHandle;
 	Result.callables.entryFunctionNameDC = DCEntryPoint;
@@ -61,7 +61,7 @@ OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeHitGroupProgGroupDescription(
 	const char* IEntryPoint)
 {
 	OptixProgramGroupDesc Result = { };
-	Result.kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
+	Result.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
 	Result.hitgroup.moduleCH = ClosestHitModuleHandle;
 	Result.hitgroup.moduleAH = AnyHitModuleHandle;
 	Result.hitgroup.moduleIS = IntersectionModuleHandle;

@@ -12,7 +12,7 @@ FCarlaOptiXHostBuffer::FCarlaOptiXHostBuffer(size_t size) :
 }
 
 FCarlaOptiXHostBuffer::FCarlaOptiXHostBuffer(
-	FCarlaOptiXDeviceBuffer& DeviceBuffer)
+	const FCarlaOptiXDeviceBuffer& DeviceBuffer)
 {
 	new (this) FCarlaOptiXHostBuffer(DeviceBuffer.GetSize());
 	CARLA_OPTIX_LOG_VERBOSE(

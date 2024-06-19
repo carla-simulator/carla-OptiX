@@ -1,5 +1,5 @@
 #include "OptiX_Instance.h"
-#ifdef CARLA_OPTIX_DEBUG_CHECKS
+#ifdef CARLA_OPTIX_DEBUG
 #include <atomic>
 #endif
 
@@ -18,11 +18,14 @@ TAutoConsoleVariable<int32> CarlaOptiXVerbose(
 
 static void* OptixLibraryHandle = nullptr;
 
-#ifdef CARLA_OPTIX_DEBUG_CHECKS
+#ifdef CARLA_OPTIX_DEBUG
 static std::atomic<FCarlaOptiXInstance*> GlobalOptiXInstance = nullptr;
 #else
 static FCarlaOptiXInstance* GlobalOptiXInstance = nullptr;
 #endif
+
+#undef min
+#undef max
 
 
 
@@ -32,12 +35,22 @@ void FCarlaOptiXInstance::OptixCallback(
 	const char* message,
 	void* self_ptr)
 {
-	FCarlaOptiXInstance& self =
-		*reinterpret_cast<FCarlaOptiXInstance*>(self_ptr);
+	auto& self = *reinterpret_cast<FCarlaOptiXInstance*>(self_ptr);
+	
+	constexpr const TCHAR* Level[] =
+	{
+		TEXT("Disable"),
+		TEXT("Fatal"),
+		TEXT("Error"),
+		TEXT("Warning"),
+		TEXT("Info")
+	};
+
 	UE_LOG(
 		LogCarlaOptiX,
 		Log,
-		TEXT("Optix-%s: %s"),
+		TEXT("(%s) %s: %s"),
+		Level[std::min<size_t>(level, 4)],
 		*FString(tag),
 		*FString(message));
 }
@@ -56,7 +69,7 @@ void FCarlaOptiXInstance::DestroyGlobalContext()
 
 FCarlaOptiXInstance* FCarlaOptiXInstance::GetGlobalInstance()
 {
-#ifdef CARLA_OPTIX_DEBUG_CHECKS
+#ifdef CARLA_OPTIX_DEBUG
 	return GlobalOptiXInstance.load(std::memory_order::acquire);
 #else
 	return GlobalOptiXInstance;
@@ -177,8 +190,7 @@ void CheckCUDAResult(
 	CUresult ec,
 	std::source_location loc)
 {
-	check(ec == CUDA_SUCCESS);
-	if (ec == CUDA_SUCCESS)
+	if (ec == CUDA_SUCCESS) [[likely]]
 		return;
 	const char* name = nullptr;
 	const char* message = nullptr;
@@ -192,7 +204,7 @@ void CheckCUDAResult(
 		loc.line(),
 		loc.column(),
 		(unsigned)ec,
-		*FString(name ? name : "<invalid CUresult>"),
+		*FString(name ? name : "<Invalid CUresult value>"),
 		*FString(message ? message : "<N/A>"));
 	check(false);
 }
@@ -201,8 +213,7 @@ void CheckOptiXResult(
 	OptixResult ec,
 	std::source_location loc)
 {
-	check(ec == OPTIX_SUCCESS);
-	if (ec == OPTIX_SUCCESS)
+	if (ec == OPTIX_SUCCESS) [[likely]]
 		return;
 	auto name = optixGetErrorName(ec);
 	auto message = optixGetErrorString(ec);
@@ -214,7 +225,7 @@ void CheckOptiXResult(
 		loc.line(),
 		loc.column(),
 		(unsigned)ec,
-		*FString(name ? name : "<invalid CUresult>"),
+		*FString(name ? name : "<Invalid OptixResult value>"),
 		*FString(message ? message : "<N/A>"));
 	check(false);
 }

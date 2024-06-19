@@ -23,6 +23,27 @@ FCarlaOptiXPipeline::FCarlaOptiXPipeline(
 		&Handle));
 }
 
+FCarlaOptiXPipeline::FCarlaOptiXPipeline(
+	FCarlaOptiXInstance& Instance,
+	std::span<FCarlaOptiXProgramGroup> ProgGroups,
+	const OptixPipelineCompileOptions& CompileOptions,
+	const OptixPipelineLinkOptions& LinkOptions)
+{
+	std::vector<OptixProgramGroup> ProgGroupHandles(ProgGroups.size());
+	for (size_t i = 0; i != ProgGroups.size(); ++i)
+		ProgGroupHandles[i] = ProgGroups[i].GetHandle();
+	size_t LogBufferSize = CARLA_OPTIX_LOG_BUFFER_SIZE;
+	CheckOptiXResult(optixPipelineCreate(
+		Instance.GetOptixDeviceContext(),
+		&CompileOptions,
+		&LinkOptions,
+		ProgGroupHandles.data(),
+		ProgGroupHandles.size(),
+		LogBuffer,
+		&LogBufferSize,
+		&Handle));
+}
+
 FCarlaOptiXPipeline::FCarlaOptiXPipeline(FCarlaOptiXPipeline&& Other) :
 	Handle(Other.Handle)
 {

@@ -42,7 +42,7 @@ public:
 	}
 
 	template <typename T>
-	explicit FCarlaOptiXHostArray(FCarlaOptiXDeviceArray<T>& Source) :
+	explicit FCarlaOptiXHostArray(const FCarlaOptiXDeviceArray<T>& Source) :
 		FCarlaOptiXHostBuffer(Source)
 	{
 	}

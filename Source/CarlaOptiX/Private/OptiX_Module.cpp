@@ -21,7 +21,7 @@ FCarlaOptiXKernelModule::FCarlaOptiXKernelModule(
 		Source.data(),
 		Source.size(),
 		LogBuffer,
-		nullptr,
+		&LogBufferSize,
 		&Module));
 }
 

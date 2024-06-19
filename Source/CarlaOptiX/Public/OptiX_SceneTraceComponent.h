@@ -7,6 +7,8 @@
 
 
 class CARLAOPTIX_API FCarlaOptiXScene;
+class CARLAOPTIX_API FCarlaOptiXPipeline;
+class CARLAOPTIX_API FCarlaOptiXKernelModule;
 class UTextureRenderTarget2D;
 
 
@@ -26,17 +28,30 @@ public:
 	void EndPlay(
 		const EEndPlayReason::Type EndPlayReason) override;
 
-	void SetPipeline(FCarlaOptiXPipeline& NewPipeline);
+	void SetPipeline(FCarlaOptiXPipeline&& NewPipeline);
 
 	void SetPipeline(std::shared_ptr<FCarlaOptiXPipeline> NewPipeline);
+
+	void SetModule(FCarlaOptiXKernelModule&& NewModule);
+
+	void SetModule(std::shared_ptr<FCarlaOptiXKernelModule> NewModule);
 
 	void TraceRays();
 
 	FCarlaOptiXDeviceArray<FVector3f>& GetHitBuffer();
 
-	FCarlaOptiXHostArray<FVector3f> GetHitPositionsHost();
+	const FCarlaOptiXDeviceArray<FVector3f>& GetHitBuffer() const;
 
-	TArray<FVector> GetHitPositions();
+	FCarlaOptiXHostArray<FVector3f> GetHitPositionsHost() const;
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FVector> GetHitPositions() const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetWidth() const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetHeight() const;
 
 	FUintPoint GetShape() const;
 
@@ -44,6 +59,7 @@ private:
 
 	FCarlaOptiXScene* Scene;
 
+	std::shared_ptr<FCarlaOptiXKernelModule> Module;
 	std::shared_ptr<FCarlaOptiXPipeline> Pipeline;
 
 	FCarlaOptiXDeviceArray<FVector3f> HitBuffer;
