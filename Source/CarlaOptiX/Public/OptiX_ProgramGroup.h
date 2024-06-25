@@ -11,7 +11,7 @@ class CARLAOPTIX_API FCarlaOptiXInstance;
 
 class CARLAOPTIX_API FCarlaOptiXProgramGroup
 {
-	OptixProgramGroup Handle = OptixProgramGroup();
+	OptixProgramGroup Handle;
 
 public:
 
@@ -43,7 +43,7 @@ public:
 
 	constexpr auto GetHandle() { return Handle; }
 
-	FCarlaOptiXProgramGroup() = default;
+	FCarlaOptiXProgramGroup();
 	FCarlaOptiXProgramGroup(
 		FCarlaOptiXInstance& Instance,
 		std::span<OptixProgramGroupDesc> Descriptions,
@@ -53,6 +53,59 @@ public:
 	FCarlaOptiXProgramGroup(FCarlaOptiXProgramGroup&& Other);
 	FCarlaOptiXProgramGroup& operator=(FCarlaOptiXProgramGroup&& Other);
 	~FCarlaOptiXProgramGroup();
+
+	template <EModuleStageKind... EnabledKinds>
+	static auto CreateFromSingleModule(
+		FCarlaOptiXInstance& Instance,
+		FCarlaOptiXKernelModule& Module)
+	{
+		constexpr EModuleStageKind StageKinds[] = { EnabledKinds... };
+		auto ModuleHandle = Module.GetHandle();
+		std::vector<OptixProgramGroupDesc> ProgGroupDescs;
+		bool HitGroupFound = false;
+		for (auto StageKind : StageKinds)
+		{
+			switch (StageKind)
+			{
+			case EModuleStageKind::AnyHit:
+			case EModuleStageKind::ClosestHit:
+			case EModuleStageKind::Intersection:
+				if (!HitGroupFound)
+				{
+					HitGroupFound = true;
+					ProgGroupDescs.push_back(FCarlaOptiXProgramGroup::MakeHitGroupProgGroupDescription(
+						ModuleHandle,
+						ModuleHandle,
+						ModuleHandle));
+				}
+				break;
+			case EModuleStageKind::Miss:
+				ProgGroupDescs.push_back(FCarlaOptiXProgramGroup::MakeMissProgGroupDescription(
+					ModuleHandle));
+				break;
+			case EModuleStageKind::RayGen:
+				ProgGroupDescs.push_back(FCarlaOptiXProgramGroup::MakeRayGenProgGroupDescription(
+					ModuleHandle));
+				break;
+			case EModuleStageKind::Exception:
+				ProgGroupDescs.push_back(FCarlaOptiXProgramGroup::MakeExceptionProgGroupDescription(
+					ModuleHandle));
+				break;
+			case EModuleStageKind::Callable:
+				ProgGroupDescs.push_back(FCarlaOptiXProgramGroup::MakeCallableProgGroupDescription(
+					ModuleHandle,
+					ModuleHandle));
+				break;
+			default:
+				break;
+			}
+		}
+		OptixProgramGroupOptions ProgGroupOptions = { };
+		return FCarlaOptiXProgramGroup(
+			Instance,
+			ProgGroupDescs,
+			ProgGroupOptions);
+	}
 
 	void Destroy();
 };

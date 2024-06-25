@@ -4,16 +4,18 @@
 #include "OptiX_Pipeline.h"
 #include "BuiltinKernelList.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include <mutex>
 #include <atomic>
 
 
 
 static std::atomic_uint64_t stc_pipeline_ref_count = 0;
 static FCarlaOptiXPipeline STCPipeline;
+static FCarlaOptiXProgramGroup STCProgGroup;
 static FCarlaOptiXKernelModule STCModule;
 
 
-struct FLaunchParameters
+struct FLaunchArgs
 {
 	OptixTraversableHandle gas;
 	DevicePtr<FVector3f> result_buffer;
@@ -38,8 +40,10 @@ static void STCInit()
 		OPTIX_PAYLOAD_SEMANTICS_IS_READ
 	};
 
+	auto& Instance = FCarlaOptiXInstance::GetGlobalInstanceChecked();
+
 	OptixPayloadType Payload = { };
-	Payload.numPayloadValues = GetWordCountOf<FLaunchParameters>;
+	Payload.numPayloadValues = GetWordCountOf<FLaunchArgs>;
 	Payload.payloadSemantics = PayloadSemantics;
 
 	OptixPipelineCompileOptions CompileOptions = { };
@@ -57,28 +61,40 @@ static void STCInit()
 	CompileOptions.allowOpacityMicromaps = false;
 	CompileOptions.usesMotionBlur = false;
 	CompileOptions.numPayloadValues = GetWordCountOf<void*>;
-	CompileOptions.numAttributeValues = 0; // ?
+	CompileOptions.numAttributeValues = 0;
 
-	constexpr TCHAR Path[] = TEXT("F:/NVOptiXTest/Plugins/carla-OptiX/Source/CarlaOptiX/Private/OptiX-IR/SceneTraceComponent.ptx");
+	constexpr TCHAR Path[] =
+		TEXT("F:/NVOptiXTest/Plugins/carla-OptiX/Source/CarlaOptiX/Private/OptiX-IR/SceneTraceComponent.ptx");
 
-	auto [Pipeline, Module] = FCarlaOptiXPipeline::CreateFromTraits<
+	STCModule = FCarlaOptiXKernelModule::Load(
+		Instance,
+		Path,
+		CompileOptions);
+
+	STCProgGroup = FCarlaOptiXProgramGroup::CreateFromSingleModule<
 		EModuleStageKind::RayGen,
 		EModuleStageKind::AnyHit,
 		EModuleStageKind::ClosestHit,
 		EModuleStageKind::Miss,
 		EModuleStageKind::Intersection>(
-			FCarlaOptiXInstance::GetGlobalInstanceChecked(),
-			Path,
-			CompileOptions);
+			Instance,
+			STCModule);
 
-	STCPipeline = std::move(Pipeline);
-	STCModule = std::move(Module);
+	STCPipeline = FCarlaOptiXPipeline(
+		Instance,
+		std::span(&STCProgGroup, 1),
+		CompileOptions);
 }
 
 static void STCCleanup()
 {
-	STCModule.Destroy();
+#ifdef CARLA_OPTIX_DEBUG
+	static std::mutex lock;
+	std::scoped_lock guard(lock);
+#endif
+	STCProgGroup.Destroy();
 	STCPipeline.Destroy();
+	STCModule.Destroy();
 }
 
 
@@ -91,24 +107,47 @@ ASceneTraceComponentNVOptiX::ASceneTraceComponentNVOptiX(
 
 ASceneTraceComponentNVOptiX::~ASceneTraceComponentNVOptiX()
 {
-	if (stc_pipeline_ref_count.fetch_sub(1, std::memory_order_acquire) - 1 == 0)
-		STCCleanup();
 }
 
 void ASceneTraceComponentNVOptiX::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (stc_pipeline_ref_count.fetch_add(1, std::memory_order_acquire) == 0)
 		STCInit();
+
+	HitBuffer = FCarlaOptiXDeviceArray<FVector3f>(Width * Height);
+
+	FCarlaOptiXEmptyRecord RayGenRecord;
+	FCarlaOptiXEmptyRecord MissRecord;
+
+	SBT = FCarlaOptiXShaderBindingTable();
+	SBT.AllocateAndBindRecords(
+		STCProgGroup,
+		std::make_pair(RayGenRecord, ECarlaOptiXSBTRecordKind::RayGen),
+		std::make_pair(MissRecord, ECarlaOptiXSBTRecordKind::Miss));
+}
+
+void ASceneTraceComponentNVOptiX::Tick(float dt)
+{
+	Trace();
 }
 
 void ASceneTraceComponentNVOptiX::EndPlay(
 	const EEndPlayReason::Type EndPlayReason)
 {
+	Super::EndPlay(EndPlayReason);
+	if (stc_pipeline_ref_count.load(std::memory_order_acquire) != 0)
+		if (stc_pipeline_ref_count.fetch_sub(1, std::memory_order_acquire) - 1 == 0)
+			STCCleanup();
 }
 
-void ASceneTraceComponentNVOptiX::TraceRays()
+void ASceneTraceComponentNVOptiX::Trace()
 {
-	// STCPipeline.Launch();
+	FLaunchArgs Args;
+	FCarlaOptiXDeviceBuffer Buffer(sizeof(Args));
+	cuMemcpyHtoD(Buffer.GetDeviceAddress(), &Args, sizeof(Args));
+	STCPipeline.Launch(SBT, Buffer, FUintVector3(Width, Height, 1));
 }
 
 FCarlaOptiXDeviceArray<FVector3f>& ASceneTraceComponentNVOptiX::GetHitBuffer()
@@ -138,15 +177,24 @@ TArray<FVector> ASceneTraceComponentNVOptiX::GetHitPositions() const
 
 int32 ASceneTraceComponentNVOptiX::GetWidth() const
 {
-	return static_cast<int32>(GetShape().X);
+	return static_cast<int32>(Width);
 }
 
 int32 ASceneTraceComponentNVOptiX::GetHeight() const
 {
-	return static_cast<int32>(GetShape().Y);
+	return static_cast<int32>(Height);
 }
 
 FUintPoint ASceneTraceComponentNVOptiX::GetShape() const
 {
-	return Shape;
+	return FUintPoint(Width, Height);
+}
+
+void ASceneTraceComponentNVOptiX::SetShape(int32 NewWidth, int32 NewHeight)
+{
+	check(NewWidth > 0);
+	check(NewHeight > 0);
+	Width = (uint32)NewWidth;
+	Height = (uint32)NewHeight;
+	HitBuffer = FCarlaOptiXDeviceArray<FVector3f>(Width * Height);
 }

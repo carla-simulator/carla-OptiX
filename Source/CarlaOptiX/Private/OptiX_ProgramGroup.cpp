@@ -71,6 +71,11 @@ OptixProgramGroupDesc FCarlaOptiXProgramGroup::MakeHitGroupProgGroupDescription(
 	return Result;
 }
 
+FCarlaOptiXProgramGroup::FCarlaOptiXProgramGroup() :
+	Handle()
+{
+}
+
 FCarlaOptiXProgramGroup::FCarlaOptiXProgramGroup(
 	FCarlaOptiXInstance& Instance,
 	std::span<OptixProgramGroupDesc> Descriptions,

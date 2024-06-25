@@ -20,10 +20,21 @@ enum class ECarlaOptiXSBTRecordKind
 
 
 
+struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) FCarlaOptiXSBTRecordHeader
+{
+	uint8_t Data[OPTIX_SBT_RECORD_HEADER_SIZE];
+};
+
+
+
+using FCarlaOptiXEmptyRecord = FCarlaOptiXSBTRecordHeader;
+
+
+
 template <typename T>
 struct alignas (OPTIX_SBT_RECORD_ALIGNMENT) CARLAOPTIX_API TCarlaOptiXSBTRecord
 {
-	char Header[OPTIX_SBT_RECORD_HEADER_SIZE];
+	FCarlaOptiXSBTRecordHeader Header;
 	T Data;
 
 	TCarlaOptiXSBTRecord() = default;
@@ -71,14 +82,24 @@ public:
 	void BindCallablesRecord(CUdeviceptr DeviceAddress, unsigned Size, unsigned Count = 1);
 
 	template <typename... T>
-	static CUdeviceptr AllocateAndBindRecords(
+	auto AllocateAndBindRecords(
 		FCarlaOptiXProgramGroup& ProgramGroup,
 		std::pair<T, ECarlaOptiXSBTRecordKind>&&... Entries)
 	{
-		const auto BufferSize =
-			(... + sizeof(TCarlaOptiXSBTRecord<std::remove_reference_t<T>>));
+		constexpr size_t Sizes[] =
+		{
+			RoundToAlignment(
+				sizeof(TCarlaOptiXSBTRecord<std::remove_reference_t<T>>),
+				OPTIX_SBT_RECORD_ALIGNMENT)...
+		};
 
-		size_t Offsets[sizeof...(T)];
+		const auto BufferSize = (0 +
+			... +
+			RoundToAlignment(
+				sizeof(TCarlaOptiXSBTRecord<std::remove_reference_t<T>>),
+				OPTIX_SBT_RECORD_ALIGNMENT));
+
+		std::array<size_t, sizeof...(T)> Offsets = { };
 
 		size_t Index = 0;
 		size_t Offset = 0;
@@ -87,7 +108,7 @@ public:
 		size_t CallablesRecordCount = 0;
 		uint8_t* StagingBuffer;
 		CheckCUDAResult(cuMemAllocHost((void**)&StagingBuffer, BufferSize));
-		([] {
+		([&]() {
 			TCarlaOptiXSBTRecord Temp(Entries.first);
 			CheckOptiXResult(optixSbtRecordPackHeader(
 				ProgramGroup.GetHandle(),
@@ -95,7 +116,7 @@ public:
 			(void)memcpy(StagingBuffer + Offset, &Temp, sizeof(Temp));
 			Offsets[Index] = Offset;
 			++Index;
-			Offset += sizeof(Temp);
+			Offset += Sizes[Index];
 			switch (Entries.second)
 			{
 			case ECarlaOptiXSBTRecordKind::Miss:
@@ -110,13 +131,14 @@ public:
 			default:
 				break;
 			}
-		}(), ...);
+			}(), ...);
 
-		CUdeviceptr Ptr;
-		CheckCUDAResult(cuMemAlloc(&Ptr, BufferSize));
+		FCarlaOptiXDeviceBuffer Buffer(BufferSize);
+		auto Ptr = Buffer.GetDeviceAddress();
 		CheckCUDAResult(cuMemFreeHost(StagingBuffer));
 		Index = 0;
-		([] {
+		([&]() {
+			auto Offset = Offsets[Index];
 			switch (Entries.second)
 			{
 			case ECarlaOptiXSBTRecordKind::RayGen:
@@ -126,20 +148,20 @@ public:
 				BindExceptionRecord(Ptr + Offset);
 				break;
 			case ECarlaOptiXSBTRecordKind::Miss:
-				BindMissRecord(Ptr + Offset, MissRecordCount);
+				BindMissRecord(Ptr + Offset, Sizes[Index], MissRecordCount);
 				break;
 			case ECarlaOptiXSBTRecordKind::HitGroup:
-				BindHitGroupRecord(Ptr + Offset, HitGroupRecordCount);
+				BindHitGroupRecord(Ptr + Offset, Sizes[Index], HitGroupRecordCount);
 				break;
 			case ECarlaOptiXSBTRecordKind::Callables:
-				BindCallablesRecord(Ptr + Offset, CallablesRecordCount);
+				BindCallablesRecord(Ptr + Offset, Sizes[Index], CallablesRecordCount);
 				break;
 			default:
 				break;
 			}
 			++Index;
 		}(), ...);
-		return Ptr;
+		return std::make_tuple(std::move(Buffer), Offsets);
 	}
 
 };

@@ -5,6 +5,11 @@
 
 extern thread_local char LogBuffer[CARLA_OPTIX_LOG_BUFFER_SIZE];
 
+FCarlaOptiXPipeline::FCarlaOptiXPipeline() :
+	Handle()
+{
+}
+
 FCarlaOptiXPipeline::FCarlaOptiXPipeline(
 	FCarlaOptiXInstance& Instance,
 	std::span<OptixProgramGroup> ProgGroups,

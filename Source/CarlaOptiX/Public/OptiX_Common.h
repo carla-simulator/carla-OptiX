@@ -46,9 +46,15 @@ bool IsCarlaOptiXVerboseLoggingEnabled();
 
 
 
+constexpr auto RoundToAlignment(size_t x, size_t a)
+{
+	--a;
+	return ((x + a) & ~(size_t)a);
+}
+
 constexpr size_t ToWordCount(size_t x)
 {
-	return ((x + 3) & ~(size_t)3) >> 2;
+	return RoundToAlignment(x, 4) >> 2;
 }
 
 template <typename T>

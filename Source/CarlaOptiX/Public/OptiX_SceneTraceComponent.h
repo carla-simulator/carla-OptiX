@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "OptiX_Common.h"
 #include "OptiX_Array.h"
+#include "OptiX_ShaderBindingTable.h"
 #include "OptiX_SceneTraceComponent.generated.h"
 
 
@@ -25,12 +26,18 @@ public:
 
 	~ASceneTraceComponentNVOptiX();
 
+	UFUNCTION(BlueprintCallable)
 	void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Tick(float dt) override;
+
+	UFUNCTION(BlueprintCallable)
 	void EndPlay(
 		const EEndPlayReason::Type EndPlayReason) override;
 
-	void TraceRays();
+	UFUNCTION(BlueprintCallable)
+	void Trace();
 
 	FCarlaOptiXDeviceArray<FVector3f>& GetHitBuffer();
 
@@ -49,12 +56,21 @@ public:
 
 	FUintPoint GetShape() const;
 
+	UFUNCTION(BlueprintCallable)
+	void SetShape(int32 NewWidth, int32 NewHeight);
+
 private:
 
 	FCarlaOptiXScene* Scene;
 
 	FCarlaOptiXDeviceArray<FVector3f> HitBuffer;
 
-	FUintPoint Shape;
+	FCarlaOptiXShaderBindingTable SBT;
+
+	UPROPERTY(EditAnywhere)
+	uint32 Width = 800;
+
+	UPROPERTY(EditAnywhere)
+	uint32 Height = 600;
 
 };
