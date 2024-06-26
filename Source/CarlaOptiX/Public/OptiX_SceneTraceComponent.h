@@ -66,6 +66,7 @@ private:
 	FCarlaOptiXDeviceArray<FVector3f> HitBuffer;
 
 	FCarlaOptiXShaderBindingTable SBT;
+	FCarlaOptiXDeviceBuffer SBTRecords;
 
 	UPROPERTY(EditAnywhere)
 	uint32 Width = 800;

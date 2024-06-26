@@ -27,9 +27,9 @@ extern "C" __constant__ KernelArgs args;
 
 
 
-#define MAKE_POINTER(low, high)			(void*)((uintptr_t)(low) | ((uintptr_t)(high) << 32))
-#define POINTER_LOW32(ptr) (uint32_t)((uintptr_t)(ptr) & UINT32_MAX)
-#define POINTER_HIGH32(ptr) (uint32_t)(((uintptr_t)(ptr) >> 32) & UINT32_MAX)
+#define MAKE_POINTER(low, high)	(void*)((uintptr_t)(low) | ((uintptr_t)(high) << 32))
+#define POINTER_LOW32(ptr)		(uint32_t)((uintptr_t)(ptr) & UINT32_MAX)
+#define POINTER_HIGH32(ptr)		(uint32_t)(((uintptr_t)(ptr) >> 32) & UINT32_MAX)
 
 
 

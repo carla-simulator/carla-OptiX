@@ -118,14 +118,39 @@ void ASceneTraceComponentNVOptiX::BeginPlay()
 
 	HitBuffer = FCarlaOptiXDeviceArray<FVector3f>(Width * Height);
 
-	FCarlaOptiXEmptyRecord RayGenRecord;
-	FCarlaOptiXEmptyRecord MissRecord;
+	FCarlaOptiXEmptyRecord RayGenRecord = { };
+	FCarlaOptiXEmptyRecord AnyHitRecord = { };
+	FCarlaOptiXEmptyRecord ClosestHitRecord = { };
+	FCarlaOptiXEmptyRecord IntersectionRecord = { };
+	FCarlaOptiXEmptyRecord MissRecord = { };
+	// FCarlaOptiXEmptyRecord ExceptionRecord = { };
+	// FCarlaOptiXEmptyRecord CallablesRecord = { };
+
+	STCProgGroup.PackHeaders(
+		RayGenRecord,
+		AnyHitRecord,
+		ClosestHitRecord,
+		IntersectionRecord,
+		MissRecord);
+
+	SBTRecords = FCarlaOptiXDeviceBuffer::FromValueTuple(
+		RayGenRecord,
+		AnyHitRecord,
+		ClosestHitRecord,
+		IntersectionRecord,
+		MissRecord);
 
 	SBT = FCarlaOptiXShaderBindingTable();
-	SBT.AllocateAndBindRecords(
-		STCProgGroup,
-		std::make_pair(RayGenRecord, ECarlaOptiXSBTRecordKind::RayGen),
-		std::make_pair(MissRecord, ECarlaOptiXSBTRecordKind::Miss));
+	SBT.BindRayGenRecord(
+		SBTRecords.GetDeviceAddress());
+	SBT.BindHitGroupRecord(
+		SBTRecords.GetDeviceAddress(),
+		sizeof(AnyHitRecord) + sizeof(ClosestHitRecord) + sizeof(IntersectionRecord));
+	SBT.BindMissRecord(
+		SBTRecords.GetDeviceAddress(),
+		sizeof(MissRecord));
+	// SBT.BindExceptionRecord(SBTRecords.GetDeviceAddress());
+	// SBT.BindCallablesRecord(SBTRecords.GetDeviceAddress());
 }
 
 void ASceneTraceComponentNVOptiX::Tick(float dt)

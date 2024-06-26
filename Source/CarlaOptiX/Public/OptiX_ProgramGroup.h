@@ -54,6 +54,12 @@ public:
 	FCarlaOptiXProgramGroup& operator=(FCarlaOptiXProgramGroup&& Other);
 	~FCarlaOptiXProgramGroup();
 
+	template <typename... T>
+	void PackHeaders(T&... Values)
+	{
+		(CheckOptiXResult(optixSbtRecordPackHeader(GetHandle(), &Values)), ...);
+	}
+
 	template <EModuleStageKind... EnabledKinds>
 	static auto CreateFromSingleModule(
 		FCarlaOptiXInstance& Instance,

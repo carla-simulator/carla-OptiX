@@ -83,6 +83,11 @@ FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(const void* HostData, size_t Si
 			Size));
 }
 
+FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(const FCarlaOptiXHostBuffer& HostBuffer)
+{
+	new (this) FCarlaOptiXDeviceBuffer(HostBuffer.GetSpan());
+}
+
 FCarlaOptiXDeviceBuffer::FCarlaOptiXDeviceBuffer(FCarlaOptiXDeviceBuffer&& rhs) :
 	device_ptr(rhs.device_ptr),
 	size(rhs.size)
